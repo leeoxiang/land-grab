@@ -3,20 +3,20 @@
 import { useEffect, useState, useRef } from 'react'
 import type { PlotEvent } from '@/types'
 
-const EVENT_LABELS: Record<string, { icon: string; verb: string; color: string }> = {
-  claim:          { icon: '🏠', verb: 'claimed',    color: '#7fffb0' },
-  harvest_crop:   { icon: '🌾', verb: 'harvested',  color: '#f5c518' },
-  harvest_animal: { icon: '🐄', verb: 'collected',  color: '#ffaa44' },
-  harvest_tree:   { icon: '🌳', verb: 'harvested',  color: '#2ecc71' },
-  buy_animal:     { icon: '🐑', verb: 'bought',     color: '#ff9966' },
-  plant_crop:     { icon: '🌱', verb: 'planted',    color: '#7fffb0' },
-  plant_tree:     { icon: '🌲', verb: 'planted',    color: '#2ecc71' },
-  upgrade:        { icon: '⬆️',  verb: 'upgraded',   color: '#88ccff' },
-  fish:           { icon: '🎣', verb: 'caught',     color: '#00bfff' },
-  trade_create:   { icon: '💰', verb: 'listed',     color: '#ffd700' },
-  trade_accept:   { icon: '🤝', verb: 'traded',     color: '#ffd700' },
-  hire_farmer:    { icon: '👨‍🌾', verb: 'hired',      color: '#cc88ff' },
-  abandon:        { icon: '💨', verb: 'abandoned',  color: '#888' },
+const EVENT_LABELS: Record<string, { color: string; verb: string }> = {
+  claim:          { color: '#7fffb0', verb: 'claimed'   },
+  harvest_crop:   { color: '#f5c518', verb: 'harvested' },
+  harvest_animal: { color: '#ffaa44', verb: 'collected' },
+  harvest_tree:   { color: '#2ecc71', verb: 'harvested' },
+  buy_animal:     { color: '#ff9966', verb: 'bought'    },
+  plant_crop:     { color: '#7fffb0', verb: 'planted'   },
+  plant_tree:     { color: '#2ecc71', verb: 'planted'   },
+  upgrade:        { color: '#88ccff', verb: 'upgraded'  },
+  fish:           { color: '#00bfff', verb: 'caught'    },
+  trade_create:   { color: '#ffd700', verb: 'listed'    },
+  trade_accept:   { color: '#ffd700', verb: 'traded'    },
+  hire_farmer:    { color: '#cc88ff', verb: 'hired'     },
+  abandon:        { color: '#888888', verb: 'abandoned' },
 }
 
 function shortWallet(w: string | null) {
@@ -33,12 +33,11 @@ function timeAgo(dateStr: string) {
 }
 
 function formatEvent(ev: PlotEvent) {
-  const meta  = EVENT_LABELS[ev.event_type] ?? { icon: '📋', verb: 'did something', color: '#aaa' }
-  const who   = shortWallet(ev.wallet)
+  const meta   = EVENT_LABELS[ev.event_type] ?? { color: '#aaa', verb: 'did something' }
+  const who    = shortWallet(ev.wallet)
   const detail = ev.detail ?? {}
   const item   = (detail.item_type as string) ?? (detail.crop_type as string) ?? (detail.animal_type as string) ?? ''
   const plot   = ev.plot_id ? `Plot #${ev.plot_id}` : ''
-
   return { ...meta, text: `${who} ${meta.verb}${item ? ` ${item}` : ''}${plot ? ` on ${plot}` : ''}` }
 }
 
@@ -64,18 +63,14 @@ export default function ActivityFeed() {
     return (
       <button
         onClick={() => setVisible(true)}
+        className="pixel-btn"
         style={{
           position:   'absolute',
           bottom:     80,
-          right:      80,
+          left:       12,
           zIndex:     20,
-          background: '#1a0f05',
-          border:     '3px solid #5c3317',
-          color:      '#a07840',
-          fontSize:   10,
+          fontSize:   8,
           padding:    '4px 8px',
-          cursor:     'pointer',
-          fontFamily: '"Press Start 2P", monospace',
         }}
       >
         FEED
@@ -86,16 +81,16 @@ export default function ActivityFeed() {
   return (
     <div
       style={{
-        position:  'absolute',
-        bottom:    80,
-        right:     80,
-        zIndex:    20,
-        width:     240,
-        maxHeight: 220,
-        background: 'rgba(10,5,0,0.88)',
-        border:    '3px solid #3a1f0a',
-        boxShadow: '3px 3px 0 #1a0a00',
-        display:   'flex',
+        position:      'absolute',
+        bottom:        80,
+        left:          12,
+        zIndex:        20,
+        width:         220,
+        maxHeight:     200,
+        background:    '#e8c090',
+        border:        '3px solid #5c3317',
+        boxShadow:     'inset 2px 2px 0 #f0d0a0, inset -2px -2px 0 #8b5a2b, 3px 3px 0 #3a1f0a',
+        display:       'flex',
         flexDirection: 'column',
         pointerEvents: 'none',
       }}
@@ -107,12 +102,12 @@ export default function ActivityFeed() {
           justifyContent: 'space-between',
           alignItems:     'center',
           padding:        '4px 8px',
-          background:     '#1a0a00',
-          borderBottom:   '2px solid #3a1f0a',
+          background:     '#c8975a',
+          borderBottom:   '2px solid #5c3317',
           pointerEvents:  'auto',
         }}
       >
-        <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 8, color: '#a07840' }}>
+        <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 8, color: '#3a1f0a' }}>
           LIVE FEED
         </span>
         <button
@@ -137,7 +132,14 @@ export default function ActivityFeed() {
           const f = formatEvent(ev)
           return (
             <div key={ev.id} style={{ display: 'flex', gap: 5, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 10, flexShrink: 0, marginTop: 1 }}>{f.icon}</span>
+              <span style={{
+                flexShrink: 0, marginTop: 3,
+                width: 7, height: 7,
+                background: f.color,
+                display: 'inline-block',
+                imageRendering: 'pixelated',
+                boxShadow: `0 0 3px ${f.color}66`,
+              }} />
               <span style={{ fontSize: 9, color: f.color, lineHeight: 1.4, flex: 1 }}>
                 {f.text}
               </span>

@@ -630,27 +630,28 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {/* ── Minimap ───────────────────────────────────────── */}
       <Minimap sceneRef={gameRef} onOpenMap={() => setShowMapModal(true)} />
 
-      {/* ── Golden Hour banner ────────────────────────────── */}
+      {/* ── Golden Hour pill (bottom-center, small) ───────── */}
       {goldenHour && (
         <div style={{
-          position:   'absolute',
-          top:        60,
-          left:       '50%',
-          transform:  'translateX(-50%)',
-          zIndex:     25,
-          background: 'rgba(80,50,0,0.92)',
-          border:     '3px solid #ffd700',
-          boxShadow:  '0 0 20px rgba(255,215,0,0.5)',
-          color:      '#ffd700',
-          fontFamily: '"Press Start 2P", monospace',
-          fontSize:   8,
-          padding:    '5px 14px',
-          whiteSpace: 'nowrap',
+          position:      'absolute',
+          bottom:        10,
+          left:          '50%',
+          transform:     'translateX(-50%)',
+          zIndex:        25,
+          background:    'rgba(80,50,0,0.92)',
+          border:        '2px solid #ffd700',
+          boxShadow:     '0 0 8px rgba(255,215,0,0.4)',
+          color:         '#ffd700',
+          fontFamily:    '"Press Start 2P", monospace',
+          fontSize:      6,
+          padding:       '3px 10px',
+          whiteSpace:    'nowrap',
           pointerEvents: 'none',
-          animation:  'pulse 2s infinite',
+          letterSpacing: 1,
+          animation:     'pulse 2s infinite',
         }}>
-          ✨ GOLDEN HOUR · +20% YIELD BONUS ✨
-          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }`}</style>
+          GOLDEN HOUR · +20% YIELD
+          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }`}</style>
         </div>
       )}
 
