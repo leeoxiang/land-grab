@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   if (!membership) return NextResponse.json({ error: 'Not in an alliance' }, { status: 400 })
 
   // If leader is leaving and there are other members, block (must transfer leadership first)
-  const alliance = membership.alliances as { leader_wallet: string } | null
+  const alliance = membership.alliances as unknown as { leader_wallet: string } | null
   if (alliance?.leader_wallet === wallet) {
     const { count } = await db
       .from('alliance_members')
