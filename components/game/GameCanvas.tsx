@@ -162,6 +162,36 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
     return () => clearInterval(id)
   }, [])
 
+  // ── Real-time multiplayer presence — push own position + poll others ────────
+  // Runs in React (not Phaser timers) so fetch works reliably on Vercel.
+  useEffect(() => {
+    const getScene = () => gameRef.current?.scene.getScene('WorldScene') as WorldScene | null
+    const sync = async () => {
+      const scene = getScene()
+      if (!scene) return
+      // Push own position
+      const pos = scene.getOwnPositionData?.()
+      if (pos) {
+        fetch('/api/players', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(pos),
+        }).catch(() => {})
+      }
+      // Poll other players
+      const exclude = encodeURIComponent(playerId)
+      const others = await fetch(`/api/players?exclude=${exclude}`)
+        .then(r => r.json())
+        .catch(() => [])
+      if (Array.isArray(others)) {
+        getScene()?.updateOtherPlayers?.(others)
+      }
+    }
+    sync()
+    const id = setInterval(sync, 2000)
+    return () => clearInterval(id)
+  }, [playerId])
+
   // Detect touch device for mobile D-pad
   useEffect(() => {
     setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0)

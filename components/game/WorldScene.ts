@@ -269,9 +269,8 @@ export class WorldScene extends Phaser.Scene {
     const startPlot = ownedPlot ?? this.plots[Phaser.Math.Between(0, this.plots.length - 1)]
     this.focusPlot(startPlot?.col ?? 0, startPlot?.row ?? 0, false)
 
-    // ── Real-time multiplayer — poll other players, push own position ─────────
-    this.time.addEvent({ delay: 2000, callback: this.pollOtherPlayers,  callbackScope: this, loop: true })
-    this.time.addEvent({ delay: 2000, callback: this.pushOwnPosition,   callbackScope: this, loop: true })
+    // Real-time multiplayer presence is driven by React (GameCanvas useEffect)
+    // so no Phaser timers needed here.
 
     // ── Keyboard ──────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard!.createCursorKeys()
@@ -770,63 +769,50 @@ export class WorldScene extends Phaser.Scene {
 
   // ─── Real-time multiplayer ─────────────────────────────────────────────────
 
-  private pushOwnPosition() {
-    if (!this.player || !this.walletAddress) {
-      console.warn('[presence] push skipped — player:', !!this.player, 'wallet:', this.walletAddress)
-      return
+  /** Called by React (GameCanvas) to get this player's position payload for the API. */
+  getOwnPositionData(): { wallet: string; x: number; y: number; col: number; row: number; char_id: string } | null {
+    if (!this.player || !this.walletAddress) return null
+    return {
+      wallet:  this.walletAddress,
+      x:       Math.round(this.player.x),
+      y:       Math.round(this.player.y),
+      col:     this.currentCol,
+      row:     this.currentRow,
+      char_id: this.currentCharId,
     }
-    fetch('/api/players', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        wallet:  this.walletAddress,
-        x:       Math.round(this.player.x),
-        y:       Math.round(this.player.y),
-        col:     this.currentCol,
-        row:     this.currentRow,
-        char_id: this.currentCharId,
-      }),
-    })
-      .then(r => { if (!r.ok) r.text().then(t => console.warn('[presence] push HTTP', r.status, t)) })
-      .catch(e => console.warn('[presence] push error:', e))
   }
 
-  private pollOtherPlayers() {
-    const exclude = encodeURIComponent(this.walletAddress ?? '')
-    fetch(`/api/players?exclude=${exclude}`)
-      .then(r => r.json())
-      .then((players: Array<{ wallet: string; x: number; y: number; char_id: string }>) => {
-        if (!this.scene?.isActive?.()) return
-        const seen = new Set<string>()
-        for (const p of players) {
-          seen.add(p.wallet)
-          const existing = this.otherPlayers.get(p.wallet)
-          if (existing) {
-            this.tweens.add({ targets: existing.sprite, x: p.x, y: p.y, duration: 1800, ease: 'Linear' })
-            existing.nameTag.setPosition(p.x, p.y - 26)
-          } else {
-            const def = CHARACTER_DEFS.find(c => c.id === p.char_id) ?? CHARACTER_DEFS[0]
-            const spr = this.add.sprite(p.x, p.y, def.id, def.downStart)
-            spr.setScale(def.scale).setDepth(9).setAlpha(0.85)
-            if (this.anims.exists(`${def.id}-down`)) { spr.play(`${def.id}-down`); spr.stop() }
-            const short = `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`
-            const tag   = this.add.text(p.x, p.y - 26, short, {
-              fontSize: '8px', fontFamily: '"Press Start 2P"',
-              color: '#ff8844', backgroundColor: '#00000088',
-              padding: { x: 3, y: 2 },
-            }).setOrigin(0.5, 1).setDepth(11)
-            this.otherPlayers.set(p.wallet, { sprite: spr, nameTag: tag })
-          }
-        }
-        for (const [wallet, obj] of this.otherPlayers) {
-          if (!seen.has(wallet)) {
-            obj.sprite.destroy()
-            obj.nameTag.destroy()
-            this.otherPlayers.delete(wallet)
-          }
-        }
-      })
-      .catch(() => { /* ignore */ })
+  /** Called by React (GameCanvas) with the latest other-player positions fetched from the API. */
+  public updateOtherPlayers(players: Array<{ wallet: string; x: number; y: number; char_id: string }>) {
+    if (!this.scene?.isActive?.()) return
+    const seen = new Set<string>()
+    for (const p of players) {
+      seen.add(p.wallet)
+      const existing = this.otherPlayers.get(p.wallet)
+      if (existing) {
+        this.tweens.add({ targets: existing.sprite, x: p.x, y: p.y, duration: 1800, ease: 'Linear' })
+        existing.nameTag.setPosition(p.x, p.y - 26)
+      } else {
+        const def = CHARACTER_DEFS.find(c => c.id === p.char_id) ?? CHARACTER_DEFS[0]
+        const spr = this.add.sprite(p.x, p.y, def.id, def.downStart)
+        spr.setScale(def.scale).setDepth(9).setAlpha(0.85)
+        if (this.anims.exists(`${def.id}-down`)) { spr.play(`${def.id}-down`); spr.stop() }
+        const short = p.wallet.startsWith('guest_') ? 'Guest' : `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`
+        const tag   = this.add.text(p.x, p.y - 26, short, {
+          fontSize: '8px', fontFamily: '"Press Start 2P"',
+          color: '#ff8844', backgroundColor: '#00000088',
+          padding: { x: 3, y: 2 },
+        }).setOrigin(0.5, 1).setDepth(11)
+        this.otherPlayers.set(p.wallet, { sprite: spr, nameTag: tag })
+      }
+    }
+    for (const [wallet, obj] of this.otherPlayers) {
+      if (!seen.has(wallet)) {
+        obj.sprite.destroy()
+        obj.nameTag.destroy()
+        this.otherPlayers.delete(wallet)
+      }
+    }
   }
 
   // ─── Tree overlay sprites ───────────────────────────────────────────────────
