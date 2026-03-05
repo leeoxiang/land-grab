@@ -17,7 +17,8 @@ export async function GET(req: Request) {
 
   if (exclude) query = query.neq('wallet', exclude)
 
-  const { data } = await query
+  const { data, error } = await query
+  if (error) return NextResponse.json({ error: error.message, hint: error.hint, details: error.details }, { status: 500 })
   // Rename pos_updated_at → updated_at so the client doesn't change
   return NextResponse.json(
     (data ?? []).map(({ pos_updated_at, ...rest }) => ({ ...rest, updated_at: pos_updated_at }))
