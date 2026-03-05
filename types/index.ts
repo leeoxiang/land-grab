@@ -17,6 +17,7 @@ export interface Plot {
   last_fish_at:  string | null
   custom_name?:  string | null
   upgrade_level?: number
+  view_count?:   number
   farmer_count?: number  // injected by /api/plots bulk endpoint
 }
 
@@ -92,6 +93,42 @@ export interface MarketOrder {
   order_type: 'buy' | 'sell'
   status: 'open' | 'filled' | 'cancelled'
   created_at: string
+}
+
+export interface PlotEvent {
+  id: number
+  event_type: string
+  plot_id: number | null
+  wallet: string | null
+  detail: Record<string, unknown>
+  created_at: string
+}
+
+export interface Alliance {
+  id: number
+  name: string
+  tag: string
+  leader_wallet: string
+  created_at: string
+  member_count?: number
+}
+
+export interface TradeOffer {
+  id: number
+  plot_id: number
+  seller_wallet: string
+  buyer_wallet: string | null
+  price_usdc: number
+  status: 'open' | 'accepted' | 'cancelled'
+  created_at: string
+  plot?: Plot
+}
+
+export interface Achievement {
+  id: number
+  wallet: string
+  achievement_id: string
+  unlocked_at: string
 }
 
 export interface PlotFull extends Plot {

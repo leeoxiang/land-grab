@@ -81,6 +81,21 @@
   }
   .pixel-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
+  /* Pixel-art text input */
+  .pixel-input {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    background: #1a0a00;
+    border: 2px solid #5c3317;
+    box-shadow: inset 1px 1px 0 rgba(0,0,0,0.5);
+    color: #f0d080;
+    padding: 5px 8px;
+    outline: none;
+    -webkit-font-smoothing: none;
+  }
+  .pixel-input::placeholder { color: #5c3317; }
+  .pixel-input:focus { border-color: #a07840; box-shadow: inset 1px 1px 0 rgba(0,0,0,0.5), 0 0 0 1px #a07840; }
+
   /* Sunken inset box (stat cells, list rows, inputs) */
   .pixel-inset {
     background: #5c3317;

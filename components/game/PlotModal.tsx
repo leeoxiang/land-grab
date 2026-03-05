@@ -2,10 +2,32 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { useUsdcTransfer } from '@/lib/useUsdcTransfer'
 import type { Plot, PlotFull } from '@/types'
-import { PLOT_TIERS, CROPS, ANIMALS, TREES, FARMERS, FISH, FISH_COOLDOWN_MS, GOBLINS, STEAL_CONFIG, FARMER_HARVEST_BASE_MS, UPGRADES, MAX_UPGRADE_LEVEL } from '@/config/game'
+import { PLOT_TIERS, CROPS, ANIMALS, TREES, FARMERS, FISH, FISH_COOLDOWN_MS, GOBLINS, STEAL_CONFIG, FARMER_HARVEST_BASE_MS, UPGRADES, MAX_UPGRADE_LEVEL, RARITY, ITEM_RARITY } from '@/config/game'
 import { GAME_TOKEN } from '@/config/token'
 import PixelIcon from '@/components/ui/PixelIcon'
+
+/** Rarity badge for items */
+function RarityBadge({ type }: { type: string }) {
+  const level  = ITEM_RARITY[type]
+  if (!level) return null
+  const r = RARITY[level]
+  return (
+    <span style={{
+      fontFamily:  '"Press Start 2P", monospace',
+      fontSize:    7,
+      color:       r.color,
+      background:  r.bg,
+      border:      `1px solid ${r.color}55`,
+      padding:     '1px 4px',
+      lineHeight:  1.4,
+      flexShrink:  0,
+    }}>
+      {r.label}
+    </span>
+  )
+}
 
 /** Small pixel-art-style coloured square used instead of emoji */
 function ColorDot({ color, size = 10 }: { color: string; size?: number }) {
@@ -36,11 +58,12 @@ interface PlotSidecar {
 }
 
 interface Props {
-  plot:    Plot
-  detail:  PlotFull | null
-  loading: boolean
-  onClose: () => void
-  onUpdate: (plot: Plot) => void
+  plot:       Plot
+  detail:     PlotFull | null
+  loading:    boolean
+  onClose:    () => void
+  onUpdate:   (plot: Plot) => void
+  goldenHour?: boolean
 }
 
 type Tab = 'overview' | 'crops' | 'animals' | 'trees' | 'fishing' | 'farmers' | 'defend'
@@ -79,8 +102,9 @@ function fmtCountdown(ms: number): string {
   return `${s}s`
 }
 
-export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: Props) {
+export default function PlotModal({ plot, detail, loading, onClose, onUpdate, goldenHour = false }: Props) {
   const { publicKey } = useWallet()
+  const { transferUsdc } = useUsdcTransfer()
   const [tab, setTab]           = useState<Tab>('overview')
   const [claiming, setClaiming]       = useState(false)
   const [error, setError]             = useState<string | null>(null)
@@ -93,6 +117,13 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: 
   const [renameErr, setRenameErr]     = useState<string | null>(null)
   // Upgrade state
   const [upgrading, setUpgrading]     = useState(false)
+  // View count
+  const [viewCount, setViewCount]     = useState(plot.view_count ?? 0)
+  // Trade listing
+  const [listPrice, setListPrice]     = useState('')
+  const [listing,   setListing]       = useState(false)
+  const [tradeErr,  setTradeErr]      = useState<string | null>(null)
+  const [tradeOk,   setTradeOk]       = useState(false)
 
   // Sync when parent passes fresh data
   useEffect(() => { setLocalDetail(detail) }, [detail])
@@ -125,18 +156,51 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: 
       .catch(() => {})
   }, [plot.id])
 
+  // Increment view count when modal opens
+  useEffect(() => {
+    fetch('/api/plots/view', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ plotId: plot.id }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.view_count) setViewCount(d.view_count) })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plot.id])
+
   const handleClaim = async () => {
     if (!publicKey) return
     setClaiming(true); setError(null)
     try {
+      let txSignature: string | undefined
+
+      // Real USDC payment (skipped in DEV_BYPASS mode — detected by 0 cost config)
+      if (cfg.claimCost > 0) {
+        try {
+          txSignature = await transferUsdc(cfg.claimCost)
+        } catch (txErr: unknown) {
+          // If treasury not configured, allow bypass (for dev/testing)
+          const msg = txErr instanceof Error ? txErr.message : ''
+          if (!msg.includes('not configured')) throw txErr
+        }
+      }
+
       const res  = await fetch('/api/plots/claim', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plotId: plot.id, wallet: publicKey.toString() }),
+        body:    JSON.stringify({ plotId: plot.id, wallet: publicKey.toString(), txSignature }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to claim')
       onUpdate(data.plot)
+
+      // Fire achievement events
+      if (data.newAchievements?.length > 0) {
+        window.dispatchEvent(new CustomEvent('farm:event', {
+          detail: { achievementIds: data.newAchievements },
+        }))
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Unknown error')
     } finally {
@@ -202,88 +266,41 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: 
   }
 
   const handleShare = () => {
-    const canvas = document.createElement('canvas')
-    canvas.width  = 600
-    canvas.height = 300
-    const ctx = canvas.getContext('2d')!
-    const tc  = tierColorMap[plot.tier] ?? '#cd7f32'
-
-    const drawCard = () => {
-      ctx.fillStyle = '#1a0a00'
-      ctx.fillRect(0, 0, 600, 300)
-      ctx.strokeStyle = tc
-      ctx.lineWidth   = 4
-      ctx.strokeRect(2, 2, 596, 296)
-
-      // Right panel
-      ctx.fillStyle = '#2a1400'
-      ctx.fillRect(244, 4, 348, 292)
-
-      ctx.font      = 'bold 20px monospace'
-      ctx.fillStyle = '#ffd700'
-      ctx.fillText('LAND GRAB', 260, 40)
-
-      const displayName = nameInput.trim() || `Plot #${plot.id}`
-      ctx.font      = 'bold 15px monospace'
-      ctx.fillStyle = '#ffffff'
-      ctx.fillText(displayName.slice(0, 22), 260, 72)
-
-      ctx.font      = '12px monospace'
-      ctx.fillStyle = tc
-      ctx.fillText(PLOT_TIERS[plot.tier].label.toUpperCase() + ' PLOT', 260, 98)
-
-      ctx.fillStyle = '#a07840'
-      ctx.font      = '11px monospace'
-      ctx.fillText(`Position: (${plot.col + 1}, ${plot.row + 1})`, 260, 122)
-
-      const upgradeLevel = plot.upgrade_level ?? 1
-      ctx.fillStyle = '#88ccff'
-      ctx.fillText(`Upgrade: Level ${upgradeLevel}`, 260, 144)
-
-      ctx.fillStyle = '#7fffb0'
-      ctx.fillText(`Crops: ${localDetail?.crops?.filter(c => !c.harvested).length ?? 0}`, 260, 172)
-      ctx.fillStyle = '#ffd700'
-      ctx.fillText(`Animals: ${localDetail?.animals?.length ?? 0}`, 260, 192)
-      ctx.fillStyle = '#90ee90'
-      ctx.fillText(`Trees: ${localDetail?.trees?.length ?? 0}`, 260, 212)
-
-      if (sidecar?.score != null) {
-        ctx.fillStyle = tc
-        ctx.font      = 'bold 13px monospace'
-        ctx.fillText(`Score: ${sidecar.score}`, 260, 242)
-      }
-
-      ctx.fillStyle = '#5a3a1a'
-      ctx.font      = '9px monospace'
-      ctx.fillText('landgrab.game', 260, 282)
-    }
-
-    const img = new Image()
-    img.crossOrigin = 'anonymous'
     const padded = String(plot.id).padStart(3, '0')
-    img.src = `/plots/plot-${padded}.png`
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, 240, 300)
-      drawCard()
-      canvas.toBlob(blob => {
-        if (!blob) return
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url; a.download = `landgrab-plot-${plot.id}.png`; a.click()
-        URL.revokeObjectURL(url)
+    const a = document.createElement('a')
+    a.href = `/plots/plot-${padded}.png`
+    a.download = `landgrab-plot-${plot.id}.png`
+    a.click()
+  }
+
+  const handleListTrade = async () => {
+    if (!publicKey) return
+    const price = parseFloat(listPrice)
+    if (!price || price <= 0) { setTradeErr('Enter a valid price'); return }
+    setListing(true); setTradeErr(null); setTradeOk(false)
+    try {
+      const res  = await fetch('/api/trades', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plotId: plot.id, sellerWallet: publicKey.toString(), priceUsdc: price }),
       })
-    }
-    img.onerror = () => {
-      drawCard()
-      canvas.toBlob(blob => {
-        if (!blob) return
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url; a.download = `landgrab-plot-${plot.id}.png`; a.click()
-        URL.revokeObjectURL(url)
-      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to list')
+      setTradeOk(true)
+      setListPrice('')
+    } catch (e: unknown) {
+      setTradeErr(e instanceof Error ? e.message : 'Failed')
+    } finally {
+      setListing(false)
     }
   }
+
+  const effectiveMultiplier = (() => {
+    const lvl = plot.upgrade_level ?? 1
+    const base = lvl >= 4 ? 2.0 : lvl === 3 ? 1.5 : lvl === 2 ? 1.25 : 1.0
+    return goldenHour ? base * 1.2 : base
+  })()
+
 
   const tierColorMap: Record<string, string> = {
     bronze: '#cd7f32', silver: '#c0c0c0', gold: '#ffd700', diamond: '#00bfff',
@@ -351,6 +368,10 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: 
                     >✎</button>
                   )}
                 </h2>
+                <p className="text-sm flex items-center gap-2" style={{ color: 'var(--ui-dark)' }}>
+                  <span style={{ fontSize: 9, color: '#5c3317' }}>👁 {viewCount} views</span>
+                  {goldenHour && <span style={{ fontSize: 8, color: '#ffd700', fontFamily: '"Press Start 2P", monospace' }}>✨ GOLDEN HOUR</span>}
+                </p>
                 <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>
                   {plot.owner_wallet
                     ? isOwner ? 'Your plot' : `Owned by ${plot.owner_wallet.slice(0, 6)}...`
@@ -461,6 +482,37 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate }: 
             >
               Download Plot Card
             </button>
+          )}
+
+          {/* Trade listing for owner */}
+          {isOwner && (
+            <div className="pixel-inset p-3 space-y-2">
+              <div style={{ fontSize: 9, color: 'var(--ui-text-dark)', fontFamily: '"Press Start 2P", monospace' }}>
+                List for Trade
+              </div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  type="number"
+                  value={listPrice}
+                  onChange={e => setListPrice(e.target.value)}
+                  placeholder="Price (USDC)"
+                  min="0.01"
+                  step="0.01"
+                  className="pixel-input flex-1"
+                  style={{ fontSize: 10 }}
+                />
+                <button
+                  onClick={handleListTrade}
+                  disabled={listing || !listPrice}
+                  className="pixel-btn px-4 py-1"
+                  style={{ fontSize: 9, background: '#5a4a00', color: '#ffd700', borderColor: '#2a2000' }}
+                >
+                  {listing ? '…' : 'List'}
+                </button>
+              </div>
+              {tradeErr && <div style={{ fontSize: 9, color: '#ff4444' }}>{tradeErr}</div>}
+              {tradeOk  && <div style={{ fontSize: 9, color: '#7fffb0' }}>Listed! Buyers can find it in Plot Trading.</div>}
+            </div>
           )}
 
           {isOwner && (
@@ -586,11 +638,19 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
     if (!publicKey) return
     setPlanting(true)
     try {
-      await fetch('/api/crops/plant', {
+      const res  = await fetch('/api/crops/plant', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ plotId, slot, cropType, wallet: publicKey.toString() }),
       })
+      const data = await res.json()
+      // Schedule browser notification
+      if (data.crop?.harvest_at) {
+        const readyAtMs = new Date(data.crop.harvest_at).getTime()
+        window.dispatchEvent(new CustomEvent('farm:event', {
+          detail: { label: `${cropType} crop`, readyAtMs },
+        }))
+      }
       await onRefresh()
     } finally {
       setPlanting(false)
@@ -599,11 +659,17 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
 
   const harvestCrop = async (cropId: string) => {
     if (!publicKey) return
-    await fetch('/api/crops/harvest', {
+    const res  = await fetch('/api/crops/harvest', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ cropId, wallet: publicKey.toString() }),
     })
+    const data = await res.json()
+    if (data.newAchievements?.length > 0) {
+      window.dispatchEvent(new CustomEvent('farm:event', {
+        detail: { achievementIds: data.newAchievements },
+      }))
+    }
     await onRefresh()
   }
 
@@ -628,7 +694,11 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
               return (
                 <div key={crop.id} className="pixel-inset p-3">
                   <div className="flex items-center justify-between">
-                    <span style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}><ColorDot color={cropCfg.color} />{cropCfg.name} (slot {crop.slot + 1})</span>
+                    <span style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <ColorDot color={cropCfg.color} />{cropCfg.name}
+                      <RarityBadge type={crop.crop_type} />
+                      <span style={{ fontSize: 9, color: 'var(--ui-dark)' }}>(slot {crop.slot + 1})</span>
+                    </span>
                     {ready ? (
                       <button onClick={() => harvestCrop(crop.id)} className="pixel-btn text-xs px-3 py-1">
                         Harvest
@@ -661,7 +731,9 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
                 onClick={() => plantCrop(key, activeCrops.length)}
                 className="pixel-inset text-left p-3 hover:brightness-110 transition-all"
               >
-                <div className="text-sm" style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}><ColorDot color={c.color} />{c.name}</div>
+                <div className="text-sm" style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <ColorDot color={c.color} />{c.name} <RarityBadge type={key} />
+                </div>
                 <div className="text-xs" style={{ color: 'var(--ui-tan-light)' }}>
                   Cost: {c.seedCost} | Sell: {c.sellPrice} | {Math.floor(c.growMs / 60000)}m grow
                 </div>

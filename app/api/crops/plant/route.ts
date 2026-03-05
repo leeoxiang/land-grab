@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { CROPS, PLOT_TIERS } from '@/config/game'
 import type { CropType, PlotTier } from '@/config/game'
+import { logEvent } from '@/lib/logEvent'
 
 export async function POST(req: Request) {
   const { plotId, slot, cropType, wallet } = await req.json()
@@ -43,5 +44,8 @@ export async function POST(req: Request) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await logEvent('plant_crop', plotId, wallet, { crop_type: cropType })
+
   return NextResponse.json({ crop })
 }

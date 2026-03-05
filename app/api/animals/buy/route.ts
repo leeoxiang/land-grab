@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { ANIMALS, PLOT_TIERS } from '@/config/game'
 import type { AnimalType, PlotTier } from '@/config/game'
+import { logEvent } from '@/lib/logEvent'
+import { checkAchievements } from '@/lib/checkAchievements'
 
 export async function POST(req: Request) {
   const { plotId, animalType, wallet } = await req.json()
@@ -34,5 +36,16 @@ export async function POST(req: Request) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ animal })
+
+  // Log event
+  await logEvent('buy_animal', plotId, wallet, { animal_type: animalType })
+
+  // Check achievements
+  const newAnimalCount = (count ?? 0) + 1
+  const newAchievements = await checkAchievements(wallet, {
+    action:      'buy_animal',
+    animalCount: newAnimalCount,
+  })
+
+  return NextResponse.json({ animal, newAchievements })
 }

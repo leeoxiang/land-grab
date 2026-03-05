@@ -11,7 +11,11 @@ import MapModal          from './MapModal'
 import CharacterPicker   from './CharacterPicker'
 import ProfileModal      from './ProfileModal'
 import LeaderboardModal  from './LeaderboardModal'
-import { WORLD_COLS, WORLD_ROWS, CROPS, ANIMALS, FISH } from '@/config/game'
+import ActivityFeed      from './ActivityFeed'
+import AllianceModal     from './AllianceModal'
+import TradeModal        from './TradeModal'
+import AchievementToast  from './AchievementToast'
+import { WORLD_COLS, WORLD_ROWS, CROPS, ANIMALS, FISH, ACHIEVEMENT_DEFS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS } from '@/config/game'
 import { getSavedCharacter, CHARACTER_DEFS } from '@/config/characters'
 
 // ── Emoji lookup for inventory HUD ────────────────────────────────────────
@@ -51,8 +55,15 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   const [showCharPicker,     setShowCharPicker]     = useState(false)
   const [showProfile,        setShowProfile]        = useState(false)
   const [showLeaderboard,    setShowLeaderboard]    = useState(false)
+  const [showAlliance,       setShowAlliance]       = useState(false)
+  const [showTrades,         setShowTrades]         = useState(false)
   const [bonusToast,         setBonusToast]         = useState<string | null>(null)
+  const [goldenHour,         setGoldenHour]         = useState(false)
+  const [achQueue,           setAchQueue]           = useState<string[]>([])
   const [isTouchDevice,      setIsTouchDevice]      = useState(false)
+  const [chatStatus,         setChatStatus]         = useState('')
+  const [showChatInput,      setShowChatInput]      = useState(false)
+  const [chatDraft,          setChatDraft]          = useState('')
   const [currentCharId,      setCurrentCharId]      = useState(() =>
     typeof window !== 'undefined' ? getSavedCharacter().id : 'player'
   )
@@ -164,6 +175,72 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
     return () => clearTimeout(id)
   }, [bonusToast])
 
+  // ── Golden Hour (deterministic 6-hr cycle, 1-hr duration) ──────────────────
+  useEffect(() => {
+    const check = () => {
+      const nowMs   = Date.now()
+      const cycleMs = nowMs % GOLDEN_HOUR_INTERVAL_MS
+      setGoldenHour(cycleMs < GOLDEN_HOUR_DURATION_MS)
+    }
+    check()
+    const id = setInterval(check, 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  // ── Referral tracking — read ?ref= from URL on wallet connect ─────────────
+  useEffect(() => {
+    if (!publicKey) return
+    const wallet = publicKey.toString()
+    const refKey = `farm:ref:${wallet}`
+    if (localStorage.getItem(refKey)) return  // Already processed
+
+    const params = new URLSearchParams(window.location.search)
+    const ref    = params.get('ref')
+    if (!ref || ref === wallet) return
+
+    localStorage.setItem(refKey, '1')
+    fetch('/api/referrals', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ referrerWallet: ref, referredWallet: wallet }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.ok) setBonusToast('Welcome! You and your referrer both got bonus wheat!') })
+      .catch(() => {})
+  }, [publicKey])
+
+  // ── Browser harvest notifications — schedule via localStorage ─────────────
+  useEffect(() => {
+    if (!publicKey) return
+    // On page load, check for any pending notification alerts
+    const checkNotifs = () => {
+      const prefix = `farm:notif:`
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (!key?.startsWith(prefix)) continue
+        const readyAt = parseInt(localStorage.getItem(key) ?? '0', 10)
+        if (Date.now() >= readyAt) {
+          const label = key.replace(prefix, '').replace(/_/g, ' ')
+          if (Notification.permission === 'granted') {
+            new Notification('Land Grab', { body: `${label} is ready to harvest!`, icon: '/favicon.ico' })
+          }
+          localStorage.removeItem(key)
+        }
+      }
+    }
+    checkNotifs()
+    const id = setInterval(checkNotifs, 30_000)
+    return () => clearInterval(id)
+  }, [publicKey])
+
+  // ── Chat status — load from localStorage ─────────────────────────────────
+  useEffect(() => {
+    if (!publicKey) return
+    const saved = localStorage.getItem(`farm:chat:${publicKey.toString()}`) ?? ''
+    setChatStatus(saved)
+    setChatDraft(saved)
+  }, [publicKey])
+
   // Free starter plot — auto-claim first Bronze for new wallets
   useEffect(() => {
     if (!publicKey || plots.length === 0) return
@@ -255,6 +332,45 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
     const newRow = Math.max(0, Math.min(WORLD_ROWS - 1, currentPlot.row + dr))
     globalThis.__fw?.focusPlot?.(newCol, newRow)
   }
+
+  // Called by PlotModal after planting/buying animal to schedule a browser notification
+  const scheduleNotification = (label: string, readyAtMs: number) => {
+    localStorage.setItem(`farm:notif:${label.replace(/ /g, '_')}`, String(readyAtMs))
+    if (Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }
+
+  // Expose to PlotModal via window event
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { label, readyAtMs, achievementIds } = (e as CustomEvent).detail ?? {}
+      if (label && readyAtMs) scheduleNotification(label, readyAtMs)
+      if (Array.isArray(achievementIds) && achievementIds.length > 0) {
+        setAchQueue(prev => [...prev, ...achievementIds])
+      }
+    }
+    window.addEventListener('farm:event', handler)
+    return () => window.removeEventListener('farm:event', handler)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const saveChatStatus = async (text: string) => {
+    if (!publicKey) return
+    const wallet = publicKey.toString()
+    setChatStatus(text)
+    localStorage.setItem(`farm:chat:${wallet}`, text)
+    setShowChatInput(false)
+    await fetch('/api/status', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ wallet, statusText: text }),
+    })
+  }
+
+  // Achievement currently showing
+  const currentAch  = achQueue[0] ?? null
+  const currentAchDef = currentAch ? ACHIEVEMENT_DEFS[currentAch] : null
 
   return (
     <div className="relative w-full h-full">
@@ -511,6 +627,185 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {/* ── Minimap ───────────────────────────────────────── */}
       <Minimap sceneRef={gameRef} onOpenMap={() => setShowMapModal(true)} />
 
+      {/* ── Golden Hour banner ────────────────────────────── */}
+      {goldenHour && (
+        <div style={{
+          position:   'absolute',
+          top:        60,
+          left:       '50%',
+          transform:  'translateX(-50%)',
+          zIndex:     25,
+          background: 'rgba(80,50,0,0.92)',
+          border:     '3px solid #ffd700',
+          boxShadow:  '0 0 20px rgba(255,215,0,0.5)',
+          color:      '#ffd700',
+          fontFamily: '"Press Start 2P", monospace',
+          fontSize:   8,
+          padding:    '5px 14px',
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          animation:  'pulse 2s infinite',
+        }}>
+          ✨ GOLDEN HOUR · +20% YIELD BONUS ✨
+          <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }`}</style>
+        </div>
+      )}
+
+      {/* ── Activity feed ─────────────────────────────────── */}
+      {!selectedPlot && <ActivityFeed />}
+
+      {/* ── Alliance + Trades buttons (bottom-right stack) ── */}
+      <button
+        onClick={() => setShowAlliance(true)}
+        title="Alliances"
+        style={{
+          position:       'absolute',
+          bottom:         124,
+          right:          12,
+          zIndex:         20,
+          width:          48,
+          height:         48,
+          display:        'flex',
+          flexDirection:  'column',
+          alignItems:     'center',
+          justifyContent: 'center',
+          background:     '#3a2a6a',
+          border:         '3px solid #1a1040',
+          boxShadow:      'inset 2px 2px 0 #5a4a9a, inset -2px -2px 0 #1a0a3a, 3px 3px 0 #0a0520',
+          cursor:         'pointer',
+          padding:        0,
+        }}
+      >
+        <span style={{ fontSize: 18 }}>⚔️</span>
+        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#cc88ff', marginTop: 1 }}>ALLY</span>
+      </button>
+
+      <button
+        onClick={() => setShowTrades(true)}
+        title="Plot Trading"
+        style={{
+          position:       'absolute',
+          bottom:         180,
+          right:          12,
+          zIndex:         20,
+          width:          48,
+          height:         48,
+          display:        'flex',
+          flexDirection:  'column',
+          alignItems:     'center',
+          justifyContent: 'center',
+          background:     '#5a4a00',
+          border:         '3px solid #2a2000',
+          boxShadow:      'inset 2px 2px 0 #8a7000, inset -2px -2px 0 #2a2000, 3px 3px 0 #1a1000',
+          cursor:         'pointer',
+          padding:        0,
+        }}
+      >
+        <span style={{ fontSize: 18 }}>🤝</span>
+        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#ffd700', marginTop: 1 }}>TRADE</span>
+      </button>
+
+      {/* ── Chat status bubble (above profile button) ─────── */}
+      {publicKey && (
+        <div style={{ position: 'absolute', bottom: 68, left: 68, zIndex: 25 }}>
+          {chatStatus && (
+            <div style={{
+              background:    'rgba(10,5,0,0.88)',
+              border:        '2px solid #5c3317',
+              color:         '#f0d080',
+              fontSize:      9,
+              padding:       '3px 8px',
+              maxWidth:      160,
+              whiteSpace:    'nowrap',
+              overflow:      'hidden',
+              textOverflow:  'ellipsis',
+              fontFamily:    '"Press Start 2P", monospace',
+              pointerEvents: 'none',
+              marginBottom:  4,
+            }}>
+              💬 {chatStatus}
+            </div>
+          )}
+          <button
+            onClick={() => setShowChatInput(v => !v)}
+            style={{
+              background:  'rgba(10,5,0,0.7)',
+              border:      '2px solid #5c3317',
+              color:       '#a07840',
+              fontSize:    8,
+              padding:     '3px 6px',
+              cursor:      'pointer',
+              fontFamily:  '"Press Start 2P", monospace',
+            }}
+          >
+            {showChatInput ? 'Cancel' : 'Status'}
+          </button>
+          {showChatInput && (
+            <div style={{
+              position:   'absolute',
+              bottom:     '100%',
+              left:       0,
+              marginBottom: 4,
+              display:    'flex',
+              gap:        4,
+              background: 'rgba(10,5,0,0.95)',
+              border:     '2px solid #5c3317',
+              padding:    4,
+              zIndex:     30,
+            }}>
+              <input
+                autoFocus
+                value={chatDraft}
+                onChange={e => setChatDraft(e.target.value.slice(0, 24))}
+                onKeyDown={e => { if (e.key === 'Enter') saveChatStatus(chatDraft) }}
+                placeholder="Your status (24 chars)"
+                style={{
+                  background:  '#1a0a00',
+                  border:      '1px solid #5c3317',
+                  color:       '#f0d080',
+                  fontSize:    9,
+                  padding:     '2px 6px',
+                  width:       150,
+                  fontFamily:  '"Press Start 2P", monospace',
+                }}
+              />
+              <button
+                onClick={() => saveChatStatus(chatDraft)}
+                style={{
+                  background: '#2d5a1b',
+                  border:     '2px solid #1a3a0d',
+                  color:      '#ccffcc',
+                  fontSize:   8,
+                  padding:    '2px 6px',
+                  cursor:     'pointer',
+                }}
+              >
+                Set
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Referral share button (bottom of inventory) ───── */}
+      {publicKey && (
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}?ref=${publicKey.toString()}`
+            navigator.clipboard.writeText(url).then(() => setBonusToast('Referral link copied!'))
+          }}
+          title="Copy referral link"
+          style={{
+            position:    'absolute',
+            top:         12,
+            left:        inventory.length > 0 ? `${12 + inventory.length * 0}px` : '12px',
+            zIndex:      25,
+            pointerEvents: 'auto',
+            display:     'none', // Shown only via the share link in PlotModal or header
+          }}
+        />
+      )}
+
       {/* ── Leaderboard modal ────────────────────────────── */}
       {showLeaderboard && (
         <LeaderboardModal onClose={() => setShowLeaderboard(false)} />
@@ -550,6 +845,36 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
         />
       )}
 
+      {/* ── Alliance modal ────────────────────────────────── */}
+      {showAlliance && (
+        <AllianceModal
+          wallet={publicKey?.toString() ?? null}
+          onClose={() => setShowAlliance(false)}
+        />
+      )}
+
+      {/* ── Trade modal ───────────────────────────────────── */}
+      {showTrades && (
+        <TradeModal
+          wallet={publicKey?.toString() ?? null}
+          onClose={() => setShowTrades(false)}
+          onTradeComplete={() => {
+            // Refresh plots after a trade
+            fetch('/api/plots').then(r => r.json()).then(d => { if (Array.isArray(d)) onPlotsChange(d) })
+          }}
+        />
+      )}
+
+      {/* ── Achievement toast queue ───────────────────────── */}
+      {currentAch && currentAchDef && (
+        <AchievementToast
+          icon={currentAchDef.icon}
+          label={currentAchDef.label}
+          desc={currentAchDef.desc}
+          onDone={() => setAchQueue(prev => prev.slice(1))}
+        />
+      )}
+
       {/* ── Mobile D-pad ─────────────────────────────────── */}
       {isTouchDevice && !selectedPlot && (
         <MobileDPad />
@@ -563,6 +888,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
           loading={loadingPlot}
           onClose={() => { setSelectedPlot(null); setPlotDetail(null) }}
           onUpdate={handlePlotUpdate}
+          goldenHour={goldenHour}
         />
       )}
     </div>

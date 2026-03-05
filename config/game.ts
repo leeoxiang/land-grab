@@ -107,3 +107,63 @@ export const WORLD_COLS = 10
 export const WORLD_ROWS = 10
 export const PLOT_SIZE  = 500 // pixels — one plot fills the screen
 export const PLOT_GAP   = 70  // path width between plots
+
+// ── Rarity tiers (applied to items in inventory display) ──────────────────────
+export const RARITY = {
+  common:    { label: 'Common',    color: '#aaaaaa', bg: '#1a1a1a' },
+  uncommon:  { label: 'Uncommon',  color: '#2ecc71', bg: '#0a1f10' },
+  rare:      { label: 'Rare',      color: '#3498db', bg: '#0a1020' },
+  epic:      { label: 'Epic',      color: '#9b59b6', bg: '#150a20' },
+  legendary: { label: 'Legendary', color: '#ffd700', bg: '#1f1a00' },
+} as const
+export type RarityLevel = keyof typeof RARITY
+
+// Map item types to rarity
+export const ITEM_RARITY: Record<string, RarityLevel> = {
+  wheat:     'common',
+  carrots:   'common',
+  corn:      'uncommon',
+  tomatoes:  'uncommon',
+  pumpkin:   'rare',
+  sunflower: 'rare',
+  magicHerbs:'epic',
+  eggs:      'common',
+  milk:      'uncommon',
+  wool:      'uncommon',
+  truffles:  'epic',
+  honey:     'rare',
+  minnow:    'common',
+  perch:     'uncommon',
+  bass:      'rare',
+  salmon:    'rare',
+  pike:      'epic',
+  legendary: 'legendary',
+}
+
+// ── Achievements ──────────────────────────────────────────────────────────────
+export const ACHIEVEMENT_DEFS: Record<string, { label: string; desc: string; icon: string }> = {
+  first_claim:     { label: 'Land Owner',     desc: 'Claim your first plot',         icon: '🏠' },
+  first_harvest:   { label: 'First Harvest',  desc: 'Harvest your first crop',       icon: '🌾' },
+  first_animal:    { label: 'Animal Keeper',  desc: 'Buy your first animal',         icon: '🐄' },
+  first_fish:      { label: 'Fisherman',      desc: 'Catch your first fish',         icon: '🎣' },
+  first_trade:     { label: 'Trader',         desc: 'Complete your first trade',     icon: '🤝' },
+  harvest_10:      { label: 'Busy Farmer',    desc: 'Harvest 10 crops',              icon: '🌽' },
+  harvest_50:      { label: 'Master Farmer',  desc: 'Harvest 50 crops',              icon: '🏆' },
+  five_animals:    { label: 'Ranch Hand',     desc: 'Own 5 animals at once',        icon: '🐑' },
+  top_10:          { label: 'Rising Star',    desc: 'Reach top 10 on leaderboard',  icon: '⭐' },
+  top_3:           { label: 'Elite Farmer',   desc: 'Reach top 3 on leaderboard',   icon: '👑' },
+  gold_plot:       { label: 'Gold Rush',      desc: 'Own a Gold or Diamond plot',   icon: '💛' },
+  level_4:         { label: 'Max Power',      desc: 'Upgrade a plot to Level 4',    icon: '⬆️' },
+  referral_sent:   { label: 'Evangelist',     desc: 'Refer a friend to the game',   icon: '📢' },
+  alliance_join:   { label: 'Allied',         desc: 'Join or create an alliance',   icon: '⚔️' },
+}
+
+// ── Golden Hour schedule ──────────────────────────────────────────────────────
+// Fires every 6 hours (UTC 0, 6, 12, 18). Lasts 1 hour. +20% yield bonus.
+export const GOLDEN_HOUR_INTERVAL_MS  = 6 * 60 * 60 * 1000
+export const GOLDEN_HOUR_DURATION_MS  = 60 * 60 * 1000
+export const GOLDEN_HOUR_YIELD_BONUS  = 0.20  // 20% bonus
+
+// ── Alliance yield bonus ──────────────────────────────────────────────────────
+export const ALLIANCE_YIELD_BONUS = 0.05  // 5% bonus for alliance members
+export const ALLIANCE_MAX_MEMBERS = 5

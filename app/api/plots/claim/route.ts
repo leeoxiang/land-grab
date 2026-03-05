@@ -5,6 +5,8 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { getTokenBalance } from '@/lib/solana'
 import { PLOT_TIERS, ANIMALS } from '@/config/game'
 import type { PlotTier } from '@/config/game'
+import { logEvent } from '@/lib/logEvent'
+import { checkAchievements } from '@/lib/checkAchievements'
 
 export async function POST(req: Request) {
   const { plotId, wallet } = await req.json()
@@ -75,5 +77,12 @@ export async function POST(req: Request) {
     // sidecar missing or malformed — no bonus animals, that's fine
   }
 
-  return NextResponse.json({ plot: updated })
+  // Log event + check achievements
+  await logEvent('claim', plotId, wallet, { tier: plot.tier })
+  const newAchievements = await checkAchievements(wallet, {
+    action:   'claim',
+    plotTier: plot.tier,
+  })
+
+  return NextResponse.json({ plot: updated, newAchievements })
 }
