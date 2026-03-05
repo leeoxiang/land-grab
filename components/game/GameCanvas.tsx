@@ -14,6 +14,7 @@ import LeaderboardModal  from './LeaderboardModal'
 import ActivityFeed      from './ActivityFeed'
 import AllianceModal     from './AllianceModal'
 import TradeModal        from './TradeModal'
+import TribeModal        from './TribeModal'
 import AchievementToast  from './AchievementToast'
 import LiveChat          from './LiveChat'
 import { WORLD_COLS, WORLD_ROWS, CROPS, ANIMALS, FISH, ACHIEVEMENT_DEFS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS } from '@/config/game'
@@ -58,6 +59,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   const [showLeaderboard,    setShowLeaderboard]    = useState(false)
   const [showAlliance,       setShowAlliance]       = useState(false)
   const [showTrades,         setShowTrades]         = useState(false)
+  const [showTribes,         setShowTribes]         = useState(false)
   const [bonusToast,         setBonusToast]         = useState<string | null>(null)
   const [goldenHour,         setGoldenHour]         = useState(false)
   const [achQueue,           setAchQueue]           = useState<string[]>([])
@@ -708,6 +710,42 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       </button>
 
       <button
+        onClick={() => setShowTribes(true)}
+        title="Tribes"
+        style={{
+          position:       'absolute',
+          bottom:         236,
+          right:          12,
+          zIndex:         20,
+          width:          48,
+          height:         48,
+          display:        'flex',
+          flexDirection:  'column',
+          alignItems:     'center',
+          justifyContent: 'center',
+          background:     '#3a1f4a',
+          border:         '3px solid #1a0a2a',
+          boxShadow:      'inset 2px 2px 0 #6a3a8a, inset -2px -2px 0 #1a0a2a, 3px 3px 0 #0a0515',
+          cursor:         'pointer',
+          padding:        0,
+          gap:            2,
+        }}
+      >
+        {/* Tribe/banner pixel icon */}
+        <svg width="20" height="20" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
+          <rect x="3"  y="1"  width="2" height="14" fill="#cc88ff"/>
+          <rect x="5"  y="2"  width="7" height="2"  fill="#ff9933"/>
+          <rect x="5"  y="4"  width="7" height="2"  fill="#ffcc44"/>
+          <rect x="5"  y="6"  width="7" height="2"  fill="#ff9933"/>
+          <rect x="12" y="2"  width="1" height="6"  fill="#cc6600"/>
+          <rect x="1"  y="13" width="2" height="2"  fill="#cc88ff"/>
+          <rect x="5"  y="13" width="2" height="2"  fill="#cc88ff"/>
+          <rect x="9"  y="13" width="2" height="2"  fill="#cc88ff"/>
+        </svg>
+        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#cc88ff' }}>TRIBE</span>
+      </button>
+
+      <button
         onClick={() => setShowTrades(true)}
         title="Plot Trading"
         style={{
@@ -870,6 +908,14 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
         <AllianceModal
           wallet={publicKey?.toString() ?? null}
           onClose={() => setShowAlliance(false)}
+        />
+      )}
+
+      {/* ── Tribe modal ───────────────────────────────────── */}
+      {showTribes && (
+        <TribeModal
+          wallet={publicKey?.toString() ?? null}
+          onClose={() => setShowTribes(false)}
         />
       )}
 

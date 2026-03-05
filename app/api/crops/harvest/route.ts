@@ -36,10 +36,25 @@ export async function POST(req: Request) {
   const cropCfg = CROPS[crop.crop_type as CropType]
 
   // Apply upgrade multiplier + golden hour bonus
-  const upgradeLevel  = plot.upgrade_level ?? 1
+  const upgradeLevel   = plot.upgrade_level ?? 1
   const baseMultiplier = upgradeLevel >= 4 ? 2.0 : upgradeLevel === 3 ? 1.5 : upgradeLevel === 2 ? 1.25 : 1.0
-  const multiplier     = isGoldenHour() ? baseMultiplier * (1 + GOLDEN_HOUR_YIELD_BONUS) : baseMultiplier
-  const quantity       = Math.max(1, Math.ceil(multiplier))
+  const goldenMult     = isGoldenHour() ? 1 + GOLDEN_HOUR_YIELD_BONUS : 1.0
+
+  // Tribe bonus: leader +5% per member, member +10%
+  let tribeBonus = 1.0
+  const { data: membership } = await db.from('tribe_members').select('tribe_id').eq('wallet', wallet).maybeSingle()
+  if (membership) {
+    tribeBonus = 1.1
+  } else {
+    const { data: leadership } = await db.from('tribes').select('tribe_members(wallet)').eq('leader_wallet', wallet).maybeSingle()
+    if (leadership) {
+      const count = (leadership.tribe_members as { wallet: string }[]).length
+      tribeBonus = 1 + count * 0.05
+    }
+  }
+
+  const multiplier = baseMultiplier * goldenMult * tribeBonus
+  const quantity   = Math.max(1, Math.ceil(multiplier))
 
   // Mark harvested
   await db.from('crops').update({ harvested: true }).eq('id', cropId)

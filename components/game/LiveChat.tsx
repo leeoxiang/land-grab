@@ -29,7 +29,7 @@ export default function LiveChat({ wallet }: Props) {
   const [msgs,       setMsgs]       = useState<ChatMsg[]>([])
   const [draft,      setDraft]      = useState('')
   const [sending,    setSending]    = useState(false)
-  const [collapsed,  setCollapsed]  = useState(false)
+  const [collapsed,  setCollapsed]  = useState(true)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLInputElement>(null)
 
@@ -77,8 +77,8 @@ export default function LiveChat({ wallet }: Props) {
   return (
     <div style={{
       position:      'absolute',
-      right:         12,
-      top:           48,
+      left:          'calc(50% - 250px)',
+      bottom:        0,
       width:         220,
       zIndex:        20,
       display:       'flex',

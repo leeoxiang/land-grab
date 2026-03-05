@@ -66,7 +66,7 @@ export default function ActivityFeed() {
         className="pixel-btn"
         style={{
           position:   'absolute',
-          bottom:     80,
+          bottom:     124,
           left:       12,
           zIndex:     20,
           fontSize:   8,
@@ -82,7 +82,7 @@ export default function ActivityFeed() {
     <div
       style={{
         position:      'absolute',
-        bottom:        80,
+        bottom:        124,
         left:          12,
         zIndex:        20,
         width:         220,
