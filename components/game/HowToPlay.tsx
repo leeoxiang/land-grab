@@ -206,12 +206,12 @@ function KeyChip({ k }: { k: string }) {
       minWidth:       22,
       height:         22,
       padding:        '0 5px',
-      background:     '#1a0a00',
+      background:     '#3a1f0a',
       border:         '2px solid #5c3317',
-      boxShadow:      'inset 0 -2px 0 #3a1f0a, 0 2px 0 #0a0500',
+      boxShadow:      'inset 0 -2px 0 #1a0a00, 0 2px 0 #1a0a00',
       fontFamily:     '"Press Start 2P", monospace',
       fontSize:       8,
-      color:          '#f0d080',
+      color:          '#e8c090',
       letterSpacing:  0,
     }}>
       {k}
@@ -226,7 +226,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-[100]"
-      style={{ background: 'rgba(0,0,0,0.88)' }}
+      style={{ background: 'rgba(0,0,0,0.80)' }}
       onClick={onClose}
     >
       <div
@@ -236,31 +236,31 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           maxHeight:    '92vh',
           display:      'flex',
           flexDirection:'column',
-          background:   '#0d0800',
-          border:       '4px solid #3a1f0a',
-          boxShadow:    `0 0 0 1px #1a0a00, 0 0 60px rgba(${hexToRgb(step.accent)},0.25), 8px 8px 0 #000`,
+          background:   '#d4a574',
+          border:       '4px solid #5c3317',
+          boxShadow:    `inset 2px 2px 0 #e8c090, inset -2px -2px 0 #8b5a2b, 6px 6px 0 #3a1f0a`,
           overflow:     'hidden',
-          transition:   'box-shadow 0.4s ease',
         }}
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ─────────────────────────────────────────── */}
         <div style={{
-          background:   '#120800',
-          borderBottom: '3px solid #2a1400',
-          padding:      '18px 24px 14px',
+          background:   '#c8975a',
+          borderBottom: '3px solid #5c3317',
+          boxShadow:    'inset 0 -1px 0 #8b5a2b',
+          padding:      '14px 20px 12px',
           display:      'flex',
           alignItems:   'center',
           justifyContent: 'space-between',
           flexShrink:   0,
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <PixelIcon icon="crops" size={24} />
             <div>
               <div style={{
                 fontFamily:   '"Press Start 2P", monospace',
-                fontSize:     13,
-                color:        '#ffd700',
+                fontSize:     12,
+                color:        '#3a1f0a',
                 letterSpacing: 1,
                 lineHeight:   1,
               }}>
@@ -279,20 +279,8 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           </div>
           <button
             onClick={onClose}
-            style={{
-              background:  'none',
-              border:      '2px solid #3a1f0a',
-              color:       '#5c3317',
-              fontFamily:  '"Press Start 2P", monospace',
-              fontSize:    12,
-              width:       32,
-              height:      32,
-              cursor:      'pointer',
-              display:     'flex',
-              alignItems:  'center',
-              justifyContent: 'center',
-              flexShrink:  0,
-            }}
+            className="pixel-btn"
+            style={{ fontSize: 14, width: 32, height: 32, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             ×
           </button>
@@ -301,8 +289,8 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
         {/* ── Step tabs ──────────────────────────────────────── */}
         <div style={{
           display:      'flex',
-          borderBottom: '2px solid #1a0a00',
-          background:   '#0a0500',
+          borderBottom: '3px solid #5c3317',
+          background:   '#c8975a',
           flexShrink:   0,
           overflowX:    'auto',
           scrollbarWidth: 'none',
@@ -314,7 +302,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
               style={{
                 flex:        '1 0 auto',
                 padding:     '8px 4px',
-                background:  i === active ? '#120800' : 'transparent',
+                background:  i === active ? '#d4a574' : 'transparent',
                 border:      'none',
                 borderBottom: i === active ? `3px solid ${s.accent}` : '3px solid transparent',
                 cursor:      'pointer',
@@ -331,7 +319,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
                 display:       'flex',
                 alignItems:    'center',
                 justifyContent:'center',
-                opacity:       i === active ? 1 : 0.4,
+                opacity:       i === active ? 1 : 0.5,
                 transition:    'opacity 0.2s',
               }}>
                 <s.Icon />
@@ -339,7 +327,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
               <div style={{
                 fontFamily: '"Press Start 2P", monospace',
                 fontSize:   6,
-                color:      i === active ? s.accent : '#3a1f0a',
+                color:      i === active ? '#3a1f0a' : '#8b5a2b',
                 transition: 'color 0.2s',
               }}>
                 {s.tag}
@@ -354,29 +342,28 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           <div style={{
             flex:        1,
             display:     'flex',
-            padding:     '28px 32px',
-            gap:         28,
+            padding:     '24px 28px',
+            gap:         24,
             alignItems:  'flex-start',
-            background:  '#0d0800',
+            background:  '#e8c090',
           }}>
             {/* Left — big icon + step number */}
             <div style={{
               display:       'flex',
               flexDirection: 'column',
               alignItems:    'center',
-              gap:           12,
+              gap:           10,
               flexShrink:    0,
             }}>
               <div style={{
                 width:          80,
                 height:         80,
-                background:     '#120800',
+                background:     '#3a1f0a',
                 border:         `3px solid ${step.accent}`,
-                boxShadow:      `0 0 20px ${step.accent}44, inset 0 0 20px rgba(0,0,0,0.5)`,
+                boxShadow:      `0 0 16px ${step.accent}55, inset 2px 2px 0 #5c3317, inset -2px -2px 0 #1a0a00`,
                 display:        'flex',
                 alignItems:     'center',
                 justifyContent: 'center',
-                position:       'relative',
               }}>
                 <div style={{ transform: 'scale(2.4)', imageRendering: 'pixelated' }}>
                   <step.Icon />
@@ -384,9 +371,9 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
               </div>
               <div style={{
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize:   20,
-                color:      step.accent,
-                opacity:    0.25,
+                fontSize:   18,
+                color:      '#8b5a2b',
+                opacity:    0.4,
                 lineHeight: 1,
                 letterSpacing: 2,
               }}>
@@ -399,16 +386,18 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
               <div style={{
                 fontFamily:   '"Press Start 2P", monospace',
                 fontSize:     11,
-                color:        step.accent,
+                color:        '#3a1f0a',
                 marginBottom: 14,
                 lineHeight:   1.6,
                 letterSpacing: 0.5,
+                borderLeft:   `4px solid ${step.accent}`,
+                paddingLeft:  10,
               }}>
                 {step.title}
               </div>
               <div style={{
                 fontSize:   13,
-                color:      '#c8a060',
+                color:      '#3a1f0a',
                 lineHeight: 1.8,
                 fontFamily: 'system-ui, sans-serif',
               }}>
@@ -417,30 +406,31 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
 
               {/* Accent divider */}
               <div style={{
-                marginTop:  20,
+                marginTop:  18,
                 height:     2,
-                background: `linear-gradient(to right, ${step.accent}66, transparent)`,
+                background: `linear-gradient(to right, ${step.accent}, transparent)`,
+                opacity:    0.5,
               }} />
             </div>
           </div>
 
-          {/* Controls bar (shown on last step or always visible at bottom) */}
+          {/* Controls bar */}
           <div style={{
-            borderTop:  '2px solid #1a0a00',
-            background: '#0a0500',
-            padding:    '12px 24px',
+            borderTop:  '3px solid #5c3317',
+            background: '#d4a574',
+            padding:    '10px 20px',
             flexShrink: 0,
           }}>
             <div style={{
               fontFamily:   '"Press Start 2P", monospace',
               fontSize:     7,
-              color:        '#3a1f0a',
-              marginBottom: 8,
+              color:        '#5c3317',
+              marginBottom: 7,
               letterSpacing: 1,
             }}>
               CONTROLS
             </div>
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {KEYS.map((k, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ display: 'flex', gap: 3 }}>
@@ -459,25 +449,18 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
         <div style={{
           display:      'flex',
           gap:          10,
-          padding:      '12px 20px',
-          borderTop:    '3px solid #1a0a00',
-          background:   '#080400',
+          padding:      '10px 16px',
+          borderTop:    '3px solid #5c3317',
+          background:   '#c8975a',
+          boxShadow:    'inset 0 1px 0 #8b5a2b',
           flexShrink:   0,
           alignItems:   'center',
         }}>
           <button
             onClick={() => setActive(a => Math.max(0, a - 1))}
             disabled={active === 0}
-            style={{
-              fontFamily:  '"Press Start 2P", monospace',
-              fontSize:    10,
-              background:  '#1a0a00',
-              border:      '3px solid #3a1f0a',
-              color:       active === 0 ? '#2a1400' : '#a07840',
-              padding:     '10px 16px',
-              cursor:      active === 0 ? 'not-allowed' : 'pointer',
-              boxShadow:   active === 0 ? 'none' : 'inset 1px 1px 0 #2a1400, 3px 3px 0 #000',
-            }}
+            className="pixel-btn"
+            style={{ fontSize: 9, padding: '8px 14px' }}
           >
             ◀ PREV
           </button>
@@ -491,11 +474,11 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
                 style={{
                   width:      i === active ? 20 : 8,
                   height:     8,
-                  background: i === active ? s.accent : '#2a1400',
+                  background: i === active ? s.accent : '#8b5a2b',
                   border:     'none',
                   cursor:     'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow:  i === active ? `0 0 6px ${s.accent}88` : 'none',
+                  boxShadow:  i === active ? `0 0 6px ${s.accent}99` : 'inset 1px 1px 0 rgba(0,0,0,0.3)',
                 }}
               />
             ))}
@@ -504,32 +487,17 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           {active < STEPS.length - 1 ? (
             <button
               onClick={() => setActive(a => a + 1)}
-              style={{
-                fontFamily:  '"Press Start 2P", monospace',
-                fontSize:    10,
-                background:  '#1a0a00',
-                border:      '3px solid #3a1f0a',
-                color:       '#a07840',
-                padding:     '10px 16px',
-                cursor:      'pointer',
-                boxShadow:   'inset 1px 1px 0 #2a1400, 3px 3px 0 #000',
-              }}
+              className="pixel-btn"
+              style={{ fontSize: 9, padding: '8px 14px' }}
             >
               NEXT ▶
             </button>
           ) : (
             <button
               onClick={onClose}
-              style={{
-                fontFamily:  '"Press Start 2P", monospace',
-                fontSize:    10,
-                background:  '#2d5a1b',
-                border:      '3px solid #1a3a0d',
-                color:       '#7fffb0',
-                padding:     '10px 20px',
-                cursor:      'pointer',
-                boxShadow:   'inset 1px 1px 0 #3d8a2b, inset -1px -1px 0 #1a2a10, 3px 3px 0 #0a1a05, 0 0 12px rgba(127,255,176,0.2)',
-              }}
+              className="pixel-btn"
+              style={{ fontSize: 9, padding: '8px 16px', background: '#2d5a1b', borderColor: '#1a3a0d', color: '#7fffb0',
+                boxShadow: 'inset 1px 1px 0 #3d8a2b, inset -1px -1px 0 #1a2a10, 3px 3px 0 #0a1a05' }}
             >
               START PLAYING ▶
             </button>
