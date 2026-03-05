@@ -4,9 +4,10 @@ import { logEvent } from '@/lib/logEvent'
 import { checkAchievements } from '@/lib/checkAchievements'
 
 // POST /api/trades/[id]  { action: 'accept'|'cancel', wallet }
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { action, wallet } = await req.json()
-  const offerId = parseInt(params.id, 10)
+  const { id } = await params
+  const offerId = parseInt(id, 10)
 
   if (!action || !wallet) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
