@@ -226,6 +226,19 @@ CREATE TABLE IF NOT EXISTS tribe_members (
 );
 CREATE INDEX IF NOT EXISTS tribe_members_wallet_idx ON tribe_members(wallet);
 
+-- ── Tribe Applications ────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS tribe_applications (
+  id         bigserial PRIMARY KEY,
+  tribe_id   bigint REFERENCES tribes(id) ON DELETE CASCADE,
+  wallet     text NOT NULL,
+  message    text CHECK (char_length(message) <= 120),
+  status     text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','declined')),
+  created_at timestamptz DEFAULT now(),
+  UNIQUE(tribe_id, wallet)
+);
+CREATE INDEX IF NOT EXISTS tribe_apps_tribe_idx   ON tribe_applications(tribe_id, status);
+CREATE INDEX IF NOT EXISTS tribe_apps_wallet_idx  ON tribe_applications(wallet);
+
 -- ── RPC Helpers ───────────────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION increment_inventory(
   p_wallet    text,
@@ -286,6 +299,7 @@ ALTER TABLE player_positions   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE chat_messages      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tribes             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tribe_members      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tribe_applications ENABLE ROW LEVEL SECURITY;
 
 -- Public read policies (drop first so re-runs are safe)
 DROP POLICY IF EXISTS "plots_public_read"     ON plots;

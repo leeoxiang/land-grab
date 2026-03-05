@@ -2,14 +2,15 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-interface TribeMember { wallet: string; joined_at: string }
+interface TribeMember    { wallet: string; joined_at: string }
+interface TribeApp       { id: number; wallet: string; message: string | null; status: string; created_at: string }
+interface SentApp        { id: number; tribe_id: number; status: string; tribes: { name: string; tag: string } }
 
 interface Tribe {
   id: number
   name: string
   tag: string
   leader_wallet: string
-  plot_id: number | null
   description: string | null
   invite_code: string
   created_at: string
@@ -24,50 +25,64 @@ function shortWallet(w: string) {
   return `${w.slice(0, 4)}…${w.slice(-3)}`
 }
 
-function power(t: Tribe) {
-  return t.tribe_members.length * 100
-}
-
+function power(t: Tribe) { return t.tribe_members.length * 100 }
 const RANK_COLORS = ['#ffd700', '#c0c0c0', '#cd7f32']
 
-interface Props {
-  wallet: string | null
-  onClose: () => void
-}
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Props { wallet: string | null; onClose: () => void }
 
 export default function TribeModal({ wallet, onClose }: Props) {
-  const [tab,      setTab]      = useState<'board' | 'mine'>('board')
-  const [tribes,   setTribes]   = useState<Tribe[]>([])
-  const [myTribe,  setMyTribe]  = useState<Tribe | null>(null)
-  const [myRole,   setMyRole]   = useState<'leader' | 'member' | null>(null)
-  const [loading,  setLoading]  = useState(true)
-  const [listLoad, setListLoad] = useState(true)
-  const [search,   setSearch]   = useState('')
-  const [msg,      setMsg]      = useState('')
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [tab,       setTab]       = useState<'board' | 'mine'>('board')
+  const [tribes,    setTribes]    = useState<Tribe[]>([])
+  const [myTribe,   setMyTribe]   = useState<Tribe | null>(null)
+  const [myRole,    setMyRole]    = useState<'leader' | 'member' | null>(null)
+  const [loading,   setLoading]   = useState(true)
+  const [listLoad,  setListLoad]  = useState(true)
+  const [search,    setSearch]    = useState('')
+  const [msg,       setMsg]       = useState('')
 
+  // Applications
+  const [receivedApps, setReceivedApps] = useState<TribeApp[]>([])
+  const [sentApps,     setSentApps]     = useState<SentApp[]>([])
+  const [respondingId, setRespondingId] = useState<number | null>(null)
+
+  // Apply flow
+  const [applyingTo,  setApplyingTo]  = useState<Tribe | null>(null)
+  const [applyMsg,    setApplyMsg]    = useState('')
+  const [submitting,  setSubmitting]  = useState(false)
+
+  // Create form
   const [createName, setCreateName] = useState('')
   const [createTag,  setCreateTag]  = useState('')
   const [createDesc, setCreateDesc] = useState('')
   const [creating,   setCreating]   = useState(false)
   const [createErr,  setCreateErr]  = useState('')
 
+  // Join by code
   const [joinCode, setJoinCode] = useState('')
   const [joining,  setJoining]  = useState(false)
   const [joinErr,  setJoinErr]  = useState('')
 
-  const [joiningId, setJoiningId] = useState<number | null>(null)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3000) }
+  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(''), 3500) }
 
+  // ── Loaders ──────────────────────────────────────────────────────────────────
   const loadMine = async () => {
     if (!wallet) { setLoading(false); return }
     setLoading(true)
     try {
-      const res  = await fetch(`/api/tribes?wallet=${wallet}`)
-      const data = await res.json()
-      setMyTribe(data.tribe ?? null)
-      setMyRole(data.role ?? null)
+      const [tribeRes, appRes] = await Promise.all([
+        fetch(`/api/tribes?wallet=${wallet}`),
+        fetch(`/api/tribes/applications?wallet=${wallet}`),
+      ])
+      const tribeData = await tribeRes.json()
+      const appData   = await appRes.json()
+      setMyTribe(tribeData.tribe ?? null)
+      setMyRole(tribeData.role ?? null)
+      setReceivedApps(appData.received ?? [])
+      setSentApps(appData.sent ?? [])
     } catch {}
     setLoading(false)
   }
@@ -89,6 +104,38 @@ export default function TribeModal({ wallet, onClose }: Props) {
     searchTimer.current = setTimeout(() => loadList(search), 300)
     return () => { if (searchTimer.current) clearTimeout(searchTimer.current) }
   }, [search])
+
+  // ── Actions ───────────────────────────────────────────────────────────────────
+  const handleApply = async () => {
+    if (!wallet || !applyingTo) return
+    setSubmitting(true)
+    try {
+      const res  = await fetch('/api/tribes/apply', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet, tribe_id: applyingTo.id, message: applyMsg }),
+      })
+      const data = await res.json()
+      if (data.error) { flash(data.error); return }
+      flash(`Applied to ${applyingTo.name}!`)
+      setApplyingTo(null); setApplyMsg('')
+      await loadMine()
+    } finally { setSubmitting(false) }
+  }
+
+  const handleRespond = async (appId: number, action: 'accept' | 'decline') => {
+    if (!wallet) return
+    setRespondingId(appId)
+    try {
+      const res  = await fetch('/api/tribes/applications/respond', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet, application_id: appId, action }),
+      })
+      const data = await res.json()
+      if (data.error) { flash(data.error); return }
+      flash(action === 'accept' ? 'Member accepted!' : 'Application declined.')
+      await loadMine()
+    } finally { setRespondingId(null) }
+  }
 
   const handleCreate = async () => {
     if (!wallet || !createName.trim() || !createTag.trim()) return
@@ -118,20 +165,6 @@ export default function TribeModal({ wallet, onClose }: Props) {
     } finally { setJoining(false) }
   }
 
-  const handleJoinTribe = async (t: Tribe) => {
-    if (!wallet) return
-    setJoiningId(t.id)
-    try {
-      const res  = await fetch('/api/tribes/join', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ wallet, invite_code: t.invite_code }),
-      })
-      const data = await res.json()
-      if (data.error) { flash(data.error); return }
-      flash(`Joined ${t.name}!`); await loadMine(); loadList(search); setTab('mine')
-    } finally { setJoiningId(null) }
-  }
-
   const handleLeave = async () => {
     if (!wallet || !myTribe || !confirm('Leave tribe?')) return
     await fetch('/api/tribes/leave', {
@@ -153,22 +186,27 @@ export default function TribeModal({ wallet, onClose }: Props) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ wallet, target_wallet: target }),
     })
-    await loadMine()
+    flash('Member removed.'); await loadMine()
   }
 
   const copyInvite = () => {
-    if (myTribe) { navigator.clipboard.writeText(myTribe.invite_code); flash('Code copied!') }
+    if (myTribe) { navigator.clipboard.writeText(myTribe.invite_code); flash('Invite code copied!') }
   }
 
-  const userInAnyTribe = !!myTribe
+  // Derived
+  const userInAnyTribe   = !!myTribe
+  const pendingAppCount  = receivedApps.length
+  // Map: tribe_id → sent app status
+  const sentMap = new Map(sentApps.map(a => [a.tribe_id, a.status]))
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(20,10,0,0.75)' }}
       onClick={onClose}
     >
       <div
-        style={{ width: 440, maxHeight: '88vh', display: 'flex', flexDirection: 'column', background: '#e8c090', border: '4px solid #3a1f0a', boxShadow: 'inset 2px 2px 0 #f5d8a8, inset -2px -2px 0 #8b5a2b, 8px 8px 0 #1a0a00', overflow: 'hidden' }}
+        style={{ width: 440, maxHeight: '90vh', display: 'flex', flexDirection: 'column', background: '#e8c090', border: '4px solid #3a1f0a', boxShadow: 'inset 2px 2px 0 #f5d8a8, inset -2px -2px 0 #8b5a2b, 8px 8px 0 #1a0a00', overflow: 'hidden' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Title bar */}
@@ -176,9 +214,9 @@ export default function TribeModal({ wallet, onClose }: Props) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <svg width="18" height="18" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
               <rect x="3" y="1" width="2" height="13" fill="#f0d080"/>
-              <rect x="5" y="2" width="8" height="2"  fill="#ff9933"/>
-              <rect x="5" y="4" width="8" height="2"  fill="#ffd700"/>
-              <rect x="5" y="6" width="8" height="2"  fill="#ff9933"/>
+              <rect x="5" y="2" width="8" height="2" fill="#ff9933"/>
+              <rect x="5" y="4" width="8" height="2" fill="#ffd700"/>
+              <rect x="5" y="6" width="8" height="2" fill="#ff9933"/>
               <rect x="1" y="12" width="2" height="2" fill="#f0d080"/>
               <rect x="5" y="12" width="2" height="2" fill="#f0d080"/>
               <rect x="9" y="12" width="2" height="2" fill="#f0d080"/>
@@ -191,14 +229,13 @@ export default function TribeModal({ wallet, onClose }: Props) {
         {/* Search + tabs */}
         <div style={{ background: '#d4a574', borderBottom: '2px solid #5c3317', padding: '10px 14px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#e8c090', border: '3px solid #5c3317', padding: '5px 10px', boxShadow: 'inset 2px 2px 0 #c8975a' }}>
-            <svg width="11" height="11" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated', flexShrink: 0 }}>
-              <rect x="4"  y="1"  width="6" height="2" fill="#5c3317"/>
-              <rect x="2"  y="3"  width="2" height="6" fill="#5c3317"/>
-              <rect x="10" y="3"  width="2" height="6" fill="#5c3317"/>
-              <rect x="4"  y="9"  width="6" height="2" fill="#5c3317"/>
-              <rect x="9"  y="10" width="2" height="2" fill="#5c3317"/>
+            <svg width="11" height="11" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated', flexShrink: 0, opacity: 0.6 }}>
+              <rect x="4"  y="1" width="6" height="2" fill="#5c3317"/>
+              <rect x="2"  y="3" width="2" height="6" fill="#5c3317"/>
+              <rect x="10" y="3" width="2" height="6" fill="#5c3317"/>
+              <rect x="4"  y="9" width="6" height="2" fill="#5c3317"/>
+              <rect x="9" y="10" width="2" height="2" fill="#5c3317"/>
               <rect x="11" y="12" width="2" height="2" fill="#5c3317"/>
-              <rect x="13" y="14" width="2" height="2" fill="#5c3317"/>
             </svg>
             <input
               value={search}
@@ -206,7 +243,11 @@ export default function TribeModal({ wallet, onClose }: Props) {
               placeholder="Search tribes..."
               style={{ flex: 1, background: 'none', border: 'none', outline: 'none', fontFamily: pf, fontSize: 8, color: '#3a1f0a' }}
             />
+            {search && (
+              <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', color: '#5c3317', cursor: 'pointer', fontSize: 14, lineHeight: 1 }}>×</button>
+            )}
           </div>
+
           <div style={{ display: 'flex', marginTop: 8 }}>
             {([['board', 'LEADERBOARD'], ['mine', 'MY TRIBE']] as const).map(([key, label], i) => (
               <button
@@ -221,16 +262,21 @@ export default function TribeModal({ wallet, onClose }: Props) {
                   borderRight: i === 0 ? '2px solid #5c3317' : 'none',
                   color: tab === key ? '#3a1f0a' : '#8b5a2b',
                   cursor: 'pointer',
+                  position: 'relative',
                 }}
               >
                 {label}
-                {key === 'mine' && myTribe && <span style={{ marginLeft: 6, fontSize: 5, color: '#ffd700' }}>●</span>}
+                {key === 'mine' && (myTribe || pendingAppCount > 0) && (
+                  <span style={{ marginLeft: 6, fontSize: 5, color: pendingAppCount > 0 ? '#ff6644' : '#ffd700' }}>
+                    {pendingAppCount > 0 ? `●${pendingAppCount}` : '●'}
+                  </span>
+                )}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Flash */}
+        {/* Flash msg */}
         {msg && (
           <div style={{ background: '#2d5a1b', borderBottom: '2px solid #1a3a0d', padding: '6px 14px', fontFamily: pf, fontSize: 7, color: '#ccffcc' }}>
             {msg}
@@ -238,13 +284,13 @@ export default function TribeModal({ wallet, onClose }: Props) {
         )}
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8b5a2b #c8975a' }}>
+        <div style={{ flex: 1, overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#8b5a2b #c8975a', position: 'relative' }}>
 
           {/* ══ LEADERBOARD ══ */}
           {tab === 'board' && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '34px 54px 1fr 68px 68px', padding: '7px 14px', background: '#c8975a', borderBottom: '2px solid #5c3317' }}>
-                {['#', 'TAG', 'NAME', 'MEMBERS', 'POWER'].map(h => (
+              <div style={{ display: 'grid', gridTemplateColumns: '34px 54px 1fr 60px 76px', padding: '7px 14px', background: '#c8975a', borderBottom: '2px solid #5c3317' }}>
+                {['#', 'TAG', 'NAME', 'MEMBERS', 'ACTION'].map(h => (
                   <span key={h} style={{ fontFamily: pf, fontSize: 6, color: '#5c3317' }}>{h}</span>
                 ))}
               </div>
@@ -253,7 +299,7 @@ export default function TribeModal({ wallet, onClose }: Props) {
 
               {!listLoad && tribes.length === 0 && (
                 <div style={{ padding: 24, textAlign: 'center', fontFamily: pf, fontSize: 8, color: '#8b5a2b' }}>
-                  {search ? 'No tribes found' : 'No tribes yet — be the first!'}
+                  {search ? 'No tribes found' : 'No tribes yet — create one!'}
                 </div>
               )}
 
@@ -261,15 +307,15 @@ export default function TribeModal({ wallet, onClose }: Props) {
                 const isMyTribe = myTribe?.id === t.id
                 const isMember  = !isMyTribe && userInAnyTribe
                 const full      = t.tribe_members.length >= 10
-                const pow       = power(t)
                 const rc        = i < 3 ? RANK_COLORS[i] : '#8b5a2b'
+                const sentStatus = sentMap.get(t.id)
 
                 return (
                   <div
                     key={t.id}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '34px 54px 1fr 68px 68px',
+                      gridTemplateColumns: '34px 54px 1fr 60px 76px',
                       alignItems: 'center',
                       padding: '10px 14px',
                       background: isMyTribe ? 'rgba(45,90,27,0.1)' : i % 2 === 0 ? '#e8c090' : '#ead9b0',
@@ -277,16 +323,16 @@ export default function TribeModal({ wallet, onClose }: Props) {
                     }}
                   >
                     {/* Rank */}
-                    <span style={{ fontFamily: pf, fontSize: i < 3 ? 10 : 8, color: rc, textShadow: i < 3 ? `0 0 8px ${rc}99` : 'none' }}>
+                    <span style={{ fontFamily: pf, fontSize: i < 3 ? 10 : 8, color: rc, textShadow: i < 3 ? `0 0 8px ${rc}88` : 'none' }}>
                       {i + 1}
                     </span>
 
-                    {/* Tag */}
+                    {/* Tag badge */}
                     <div style={{ width: 40, height: 30, background: '#c8975a', border: `2px solid ${isMyTribe ? '#2d5a1b' : '#8b5a2b'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: pf, fontSize: 6, color: '#3a1f0a' }}>
                       {t.tag}
                     </div>
 
-                    {/* Name */}
+                    {/* Name + desc */}
                     <div style={{ paddingLeft: 8, overflow: 'hidden' }}>
                       <div style={{ fontFamily: pf, fontSize: 7, color: '#3a1f0a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t.name}
@@ -305,29 +351,33 @@ export default function TribeModal({ wallet, onClose }: Props) {
                       <div style={{ fontFamily: pf, fontSize: 5, color: '#8b5a2b' }}>/ 10</div>
                     </div>
 
-                    {/* Power + action */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                      <div style={{ fontFamily: pf, fontSize: 8, color: pow > 0 ? '#2d5a1b' : '#8b5a2b' }}>
-                        {pow > 0 ? pow.toLocaleString() : '—'}
+                    {/* Action */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontFamily: pf, fontSize: 7, color: power(t) > 0 ? '#2d5a1b' : '#8b5a2b' }}>
+                        {power(t) > 0 ? power(t).toLocaleString() : '—'}
                       </div>
-                      {!isMyTribe && !isMember && wallet && (
-                        <button
-                          onClick={() => handleJoinTribe(t)}
-                          disabled={joiningId === t.id || full}
-                          style={{
-                            fontFamily: pf, fontSize: 5, padding: '3px 8px',
-                            background: full ? '#666' : '#2d5a1b',
-                            border: `2px solid ${full ? '#444' : '#1a3a0d'}`,
-                            color: full ? '#aaa' : '#ccffcc',
-                            cursor: full ? 'not-allowed' : 'pointer',
-                            boxShadow: full ? 'none' : 'inset 1px 1px 0 rgba(255,255,255,0.15)',
-                          }}
-                        >
-                          {joiningId === t.id ? '…' : full ? 'FULL' : 'JOIN'}
-                        </button>
-                      )}
+
                       {isMyTribe && (
-                        <div style={{ width: 8, height: 8, background: '#2d5a1b' }} />
+                        <span style={{ fontFamily: pf, fontSize: 5, color: '#2d5a1b' }}>IN</span>
+                      )}
+
+                      {!isMyTribe && !isMember && wallet && !full && (
+                        sentStatus === 'pending' ? (
+                          <span style={{ fontFamily: pf, fontSize: 5, color: '#c8a050' }}>APPLIED</span>
+                        ) : (
+                          <button
+                            onClick={() => { setApplyingTo(t); setApplyMsg('') }}
+                            style={{ fontFamily: pf, fontSize: 5, padding: '3px 7px', background: '#2d5a1b', border: '2px solid #1a3a0d', color: '#ccffcc', cursor: 'pointer', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.15)' }}
+                          >
+                            APPLY
+                          </button>
+                        )
+                      )}
+                      {!isMyTribe && !isMember && wallet && full && (
+                        <span style={{ fontFamily: pf, fontSize: 5, color: '#888' }}>FULL</span>
+                      )}
+                      {!wallet && !isMyTribe && (
+                        <span style={{ fontFamily: pf, fontSize: 5, color: '#8b5a2b' }}>—</span>
                       )}
                     </div>
                   </div>
@@ -345,6 +395,7 @@ export default function TribeModal({ wallet, onClose }: Props) {
                 <div style={{ textAlign: 'center', fontFamily: pf, fontSize: 8, color: '#8b5a2b', padding: 20 }}>Connect wallet to use tribes</div>
               )}
 
+              {/* IN A TRIBE */}
               {!loading && wallet && myTribe && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Tribe card */}
@@ -353,14 +404,12 @@ export default function TribeModal({ wallet, onClose }: Props) {
                       <div style={{ width: 52, height: 52, background: '#c8975a', border: '3px solid #3a1f0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: pf, fontSize: 11, color: '#3a1f0a', flexShrink: 0 }}>
                         {myTribe.tag}
                       </div>
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, overflow: 'hidden' }}>
                         <div style={{ fontFamily: pf, fontSize: 10, color: '#3a1f0a' }}>{myTribe.name}</div>
                         <div style={{ fontFamily: pf, fontSize: 6, color: '#8b5a2b', marginTop: 4 }}>
                           {myRole === 'leader' ? 'You are the Leader' : `Led by ${shortWallet(myTribe.leader_wallet)}`}
                         </div>
-                        {myTribe.description && (
-                          <div style={{ fontFamily: sf, fontSize: 9, color: '#5c3317', marginTop: 4, lineHeight: 1.4 }}>{myTribe.description}</div>
-                        )}
+                        {myTribe.description && <div style={{ fontFamily: sf, fontSize: 9, color: '#5c3317', marginTop: 4, lineHeight: 1.4 }}>{myTribe.description}</div>}
                       </div>
                     </div>
                   </div>
@@ -375,28 +424,78 @@ export default function TribeModal({ wallet, onClose }: Props) {
                   <div style={{ fontFamily: sf, fontSize: 9, color: '#5c3317', background: '#c8975a', border: '2px solid #8b5a2b', padding: '6px 10px', lineHeight: 1.6 }}>
                     {myRole === 'leader'
                       ? `+5% yield per member. Current: +${myTribe.tribe_members.length * 5}% on all harvests.`
-                      : 'Members earn +10% yield on all crop harvests.'}
+                      : 'You earn +10% yield on all crop harvests.'}
                   </div>
 
-                  {/* Invite code */}
+                  {/* Invite code (leader) */}
                   {myRole === 'leader' && (
                     <div>
-                      <div style={{ fontFamily: pf, fontSize: 6, color: '#5c3317', marginBottom: 6 }}>INVITE CODE</div>
+                      <div style={{ fontFamily: pf, fontSize: 6, color: '#5c3317', marginBottom: 6 }}>INVITE CODE (direct join)</div>
                       <div style={{ display: 'flex', gap: 6 }}>
                         <div style={{ flex: 1, fontFamily: 'monospace', fontSize: 14, color: '#3a1f0a', background: '#c8975a', border: '2px solid #5c3317', padding: '5px 10px', letterSpacing: 4, userSelect: 'all' }}>
                           {myTribe.invite_code}
                         </div>
                         <button onClick={copyInvite} className="pixel-btn" style={{ fontSize: 7, padding: '6px 10px' }}>COPY</button>
                       </div>
-                      <div style={{ fontFamily: sf, fontSize: 9, color: '#8b5a2b', marginTop: 4 }}>Share this code to invite followers</div>
                     </div>
                   )}
 
-                  {/* Members */}
+                  {/* Pending applications (leader) */}
+                  {myRole === 'leader' && (
+                    <div>
+                      <div style={{ fontFamily: pf, fontSize: 6, color: '#5c3317', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        APPLICATIONS
+                        {pendingAppCount > 0 && (
+                          <span style={{ background: '#ff4422', color: '#fff', fontFamily: pf, fontSize: 6, padding: '1px 5px', borderRadius: 0 }}>
+                            {pendingAppCount}
+                          </span>
+                        )}
+                      </div>
+
+                      {receivedApps.length === 0 && (
+                        <div style={{ fontFamily: sf, fontSize: 9, color: '#8b5a2b' }}>No pending applications.</div>
+                      )}
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {receivedApps.map(app => (
+                          <div key={app.id} style={{ background: '#c8975a', border: '2px solid #8b5a2b', padding: '8px 10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontFamily: pf, fontSize: 7, color: '#3a1f0a' }}>{shortWallet(app.wallet)}</div>
+                                {app.message && (
+                                  <div style={{ fontFamily: sf, fontSize: 9, color: '#5c3317', marginTop: 3, fontStyle: 'italic', lineHeight: 1.4 }}>
+                                    &ldquo;{app.message}&rdquo;
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                                <button
+                                  onClick={() => handleRespond(app.id, 'accept')}
+                                  disabled={respondingId === app.id}
+                                  style={{ fontFamily: pf, fontSize: 5, padding: '4px 8px', background: '#2d5a1b', border: '2px solid #1a3a0d', color: '#ccffcc', cursor: 'pointer' }}
+                                >
+                                  {respondingId === app.id ? '…' : 'ACCEPT'}
+                                </button>
+                                <button
+                                  onClick={() => handleRespond(app.id, 'decline')}
+                                  disabled={respondingId === app.id}
+                                  style={{ fontFamily: pf, fontSize: 5, padding: '4px 8px', background: '#8b2020', border: '2px solid #5c1010', color: '#ffaaaa', cursor: 'pointer' }}
+                                >
+                                  {respondingId === app.id ? '…' : 'DECLINE'}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Members list */}
                   <div>
                     <div style={{ fontFamily: pf, fontSize: 6, color: '#5c3317', marginBottom: 8 }}>MEMBERS ({myTribe.tribe_members.length})</div>
                     {myTribe.tribe_members.length === 0
-                      ? <div style={{ fontFamily: sf, fontSize: 9, color: '#8b5a2b' }}>No members yet. Share your invite code!</div>
+                      ? <div style={{ fontFamily: sf, fontSize: 9, color: '#8b5a2b' }}>No members yet.</div>
                       : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                           {myTribe.tribe_members.map(m => (
@@ -417,6 +516,7 @@ export default function TribeModal({ wallet, onClose }: Props) {
                     }
                   </div>
 
+                  {/* Leave/Disband */}
                   <div style={{ display: 'flex', gap: 8 }}>
                     {myRole === 'member' && (
                       <button onClick={handleLeave} className="pixel-btn" style={{ flex: 1, fontSize: 7, background: '#5c3317', borderColor: '#3a1f0a', color: '#f0d080' }}>LEAVE TRIBE</button>
@@ -428,6 +528,26 @@ export default function TribeModal({ wallet, onClose }: Props) {
                 </div>
               )}
 
+              {/* My sent applications (not in a tribe) */}
+              {!loading && wallet && !myTribe && sentApps.filter(a => a.status === 'pending').length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontFamily: pf, fontSize: 6, color: '#5c3317', marginBottom: 8 }}>YOUR APPLICATIONS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {sentApps.filter(a => a.status === 'pending').map(a => (
+                      <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: '#c8975a', border: '2px solid #8b5a2b' }}>
+                        <div>
+                          <div style={{ fontFamily: pf, fontSize: 7, color: '#3a1f0a' }}>{(a.tribes as { name: string }).name}</div>
+                          <div style={{ fontFamily: pf, fontSize: 5, color: '#c8a050', marginTop: 2 }}>PENDING</div>
+                        </div>
+                        <div style={{ width: 8, height: 8, background: '#c8a050' }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ height: 1, background: '#8b5a2b', margin: '14px 0' }} />
+                </div>
+              )}
+
+              {/* NOT IN A TRIBE — create / join forms */}
               {!loading && wallet && !myTribe && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                   <Section title="CREATE A TRIBE">
@@ -455,13 +575,13 @@ export default function TribeModal({ wallet, onClose }: Props) {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ flex: 1, height: 2, background: '#8b5a2b' }} />
-                    <span style={{ fontFamily: pf, fontSize: 6, color: '#8b5a2b' }}>OR JOIN</span>
+                    <span style={{ fontFamily: pf, fontSize: 6, color: '#8b5a2b' }}>OR</span>
                     <div style={{ flex: 1, height: 2, background: '#8b5a2b' }} />
                   </div>
 
                   <Section title="JOIN BY INVITE CODE">
                     <div style={{ fontFamily: sf, fontSize: 10, color: '#5c3317', lineHeight: 1.6, marginBottom: 10 }}>
-                      Have a code from a KOL or friend?
+                      Have a direct code? Skip the application queue.
                     </div>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
                       <Field label="INVITE CODE" style={{ flex: 1 }}>
@@ -477,12 +597,73 @@ export default function TribeModal({ wallet, onClose }: Props) {
               )}
             </div>
           )}
+
+          {/* ══ APPLY OVERLAY ══ */}
+          {applyingTo && (
+            <div
+              style={{ position: 'absolute', inset: 0, background: 'rgba(30,15,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+              onClick={() => setApplyingTo(null)}
+            >
+              <div
+                style={{ background: '#e8c090', border: '4px solid #3a1f0a', padding: 20, width: '100%', boxShadow: 'inset 2px 2px 0 #f5d8a8, inset -2px -2px 0 #8b5a2b' }}
+                onClick={e => e.stopPropagation()}
+              >
+                <div style={{ fontFamily: pf, fontSize: 8, color: '#3a1f0a', marginBottom: 14 }}>
+                  APPLY TO JOIN
+                </div>
+
+                {/* Tribe info */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, padding: '8px 10px', background: '#c8975a', border: '2px solid #8b5a2b' }}>
+                  <div style={{ width: 36, height: 36, background: '#d4a574', border: '2px solid #5c3317', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: pf, fontSize: 8, color: '#3a1f0a', flexShrink: 0 }}>
+                    {applyingTo.tag}
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: pf, fontSize: 8, color: '#3a1f0a' }}>{applyingTo.name}</div>
+                    <div style={{ fontFamily: pf, fontSize: 6, color: '#8b5a2b', marginTop: 3 }}>
+                      {applyingTo.tribe_members.length}/10 members
+                    </div>
+                  </div>
+                </div>
+
+                <Field label="MESSAGE (optional — tell them why you want to join)">
+                  <textarea
+                    className="pixel-input"
+                    value={applyMsg}
+                    onChange={e => setApplyMsg(e.target.value.slice(0, 120))}
+                    placeholder="e.g. Big farmer, 5 plots..."
+                    rows={3}
+                    style={{ width: '100%', fontSize: 9, resize: 'none' }}
+                  />
+                  <div style={{ fontFamily: pf, fontSize: 5, color: '#8b5a2b', textAlign: 'right', marginTop: 3 }}>{applyMsg.length}/120</div>
+                </Field>
+
+                <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                  <button
+                    onClick={() => setApplyingTo(null)}
+                    className="pixel-btn"
+                    style={{ fontSize: 7, flex: 1, background: '#8b5a2b', borderColor: '#5c3317', color: '#f0d080' }}
+                  >
+                    CANCEL
+                  </button>
+                  <button
+                    onClick={handleApply}
+                    disabled={submitting}
+                    className="pixel-btn"
+                    style={{ fontSize: 7, flex: 2, background: '#2d5a1b', borderColor: '#1a3a0d', color: '#ccffcc' }}
+                  >
+                    {submitting ? 'Sending…' : 'SEND APPLICATION'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function StatBox({ label, value, green }: { label: string; value: string; green?: boolean }) {
   return (
     <div style={{ background: '#c8975a', border: '2px solid #8b5a2b', padding: '6px 8px', textAlign: 'center' }}>
