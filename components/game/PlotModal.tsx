@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { useUsdcTransfer } from '@/lib/useUsdcTransfer'
-import type { Plot, PlotFull } from '@/types'
+import type { Plot, PlotFull, Tree } from '@/types'
 import { PLOT_TIERS, CROPS, ANIMALS, TREES, FARMERS, FISH, FISH_COOLDOWN_MS, GOBLINS, STEAL_CONFIG, FARMER_HARVEST_BASE_MS, UPGRADES, MAX_UPGRADE_LEVEL, RARITY, ITEM_RARITY } from '@/config/game'
 import { GAME_TOKEN } from '@/config/token'
 import PixelIcon from '@/components/ui/PixelIcon'
@@ -837,20 +837,54 @@ function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; 
 
 // ── Trees tab ──────────────────────────────────────────────────────────────────
 
+// Slot positions shown as a mini grid (3×2)
+const SLOT_LABELS = ['Top-Left', 'Top-Center', 'Top-Right', 'Bot-Left', 'Bot-Center', 'Bot-Right']
+
+function SlotPicker({ usedSlots, onPick }: { usedSlots: number[]; onPick: (slot: number) => void }) {
+  return (
+    <div>
+      <div className="text-xs mb-2" style={{ color: 'var(--ui-dark)', fontFamily: '"Press Start 2P", monospace', fontSize: 8 }}>
+        PICK A SPOT ON YOUR PLOT:
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+        {SLOT_LABELS.map((label, i) => {
+          const taken = usedSlots.includes(i)
+          return (
+            <button key={i} disabled={taken} onClick={() => onPick(i)}
+              className="pixel-btn"
+              style={{ fontSize: 7, padding: '6px 4px', opacity: taken ? 0.35 : 1, cursor: taken ? 'not-allowed' : 'pointer' }}
+              title={taken ? 'Occupied' : label}
+            >
+              {taken ? 'X' : label.replace('-', '\n')}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; detail: PlotFull | null; tier: string; now: number; onRefresh: () => Promise<void> }) {
   const { publicKey } = useWallet()
-  const [planting, setPlanting] = useState(false)
+  const [planting,        setPlanting]        = useState(false)
+  const [pendingTreeType, setPendingTreeType] = useState<string | null>(null)
   const MAX_TREES = 3
 
-  const plantTree = async (treeType: string) => {
+  const plantTree = async (treeType: string, slot: number) => {
     if (!publicKey) return
     setPlanting(true)
+    setPendingTreeType(null)
     try {
-      await fetch('/api/trees/plant', {
+      const res = await fetch('/api/trees/plant', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plotId, treeType, wallet: publicKey.toString() }),
+        body:    JSON.stringify({ plotId, treeType, wallet: publicKey.toString(), slot }),
       })
+      if (res.ok) {
+        const { tree } = await res.json()
+        // Add sprite to Phaser scene immediately
+        globalThis.__fw?.addTreeSprite?.(tree.id, plotId, treeType, slot)
+      }
       await onRefresh()
     } finally {
       setPlanting(false)
@@ -859,15 +893,20 @@ function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
 
   const harvestTree = async (treeId: string) => {
     if (!publicKey) return
-    await fetch('/api/trees/harvest', {
+    const res = await fetch('/api/trees/harvest', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ treeId, wallet: publicKey.toString() }),
     })
+    if (res.ok) {
+      // Remove sprite from Phaser scene immediately
+      globalThis.__fw?.removeTreeSprite?.(treeId)
+    }
     await onRefresh()
   }
 
   const trees = detail?.trees ?? []
+  const usedSlots = trees.map((t: Tree) => t.slot ?? -1)
 
   return (
     <div className="space-y-4">
@@ -875,14 +914,14 @@ function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
         <div>
           <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--ui-darkest)' }}>Your Trees</h3>
           <div className="space-y-3">
-            {trees.map(tree => {
-              const tc        = TREES[tree.tree_type]
+            {trees.map((tree: Tree) => {
+              const tc        = TREES[tree.tree_type as keyof typeof TREES]
+              if (!tc) return null
               const plantedAt = new Date(tree.planted_at).getTime()
               const readyAt   = new Date(tree.ready_at).getTime()
               const grown     = now >= readyAt
 
               if (!grown) {
-                // Show growth progress
                 const total   = readyAt - plantedAt
                 const elapsed = now - plantedAt
                 const pct     = Math.min(1, elapsed / total)
@@ -897,9 +936,8 @@ function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
                 )
               }
 
-              // Fully grown — show harvest timer
-              const nextHarvest = tree.next_harvest ? new Date(tree.next_harvest).getTime() : 0
-              const lastHarvest = tree.last_harvest  ? new Date(tree.last_harvest).getTime()  : readyAt
+              const nextHarvest = tree.next_harvest != null ? new Date(tree.next_harvest).getTime() : 0
+              const lastHarvest = tree.last_harvest  != null ? new Date(tree.last_harvest).getTime()  : readyAt
               const canHarvest  = now >= nextHarvest
               const total       = tc.harvestMs
               const elapsed     = now - lastHarvest
@@ -917,7 +955,7 @@ function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
                       <span className="text-xs" style={{ color: 'var(--ui-tan-light)' }}>{fmtCountdown(nextHarvest - now)}</span>
                     )}
                   </div>
-                  <ProgressBar pct={pct} color={canHarvest ? '#ffd700' : '#90ee90'} label={canHarvest ? '✓ Fruit ready!' : `${Math.floor(pct * 100)}% · yields ${tc.yield} fruit`} />
+                  <ProgressBar pct={pct} color={canHarvest ? '#ffd700' : '#90ee90'} label={canHarvest ? 'Fruit ready!' : `${Math.floor(pct * 100)}% · yields ${tc.yield} fruit`} />
                 </div>
               )
             })}
@@ -931,11 +969,21 @@ function TreesTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
         </h3>
         {trees.length >= MAX_TREES ? (
           <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>Max trees reached</p>
+        ) : pendingTreeType ? (
+          <div className="space-y-3">
+            <div className="text-xs" style={{ color: 'var(--ui-darkest)' }}>
+              Planting: <strong>{TREES[pendingTreeType as keyof typeof TREES]?.name}</strong>
+            </div>
+            <SlotPicker usedSlots={usedSlots} onPick={slot => plantTree(pendingTreeType, slot)} />
+            <button onClick={() => setPendingTreeType(null)} className="pixel-btn" style={{ fontSize: 8, padding: '4px 10px' }}>
+              Cancel
+            </button>
+          </div>
         ) : (
           <div className="space-y-2">
             {Object.entries(TREES).map(([key, t]) => (
               <button key={key} disabled={planting}
-                onClick={() => plantTree(key)}
+                onClick={() => setPendingTreeType(key)}
                 className="pixel-inset w-full text-left p-3 hover:brightness-110 transition-all">
                 <div className="flex justify-between">
                   <span style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}><ColorDot color={t.color} />{t.name}</span>

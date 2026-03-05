@@ -39,6 +39,7 @@ export interface Tree {
   ready_at: string       // when fully grown
   last_harvest: string | null
   next_harvest: string | null
+  slot: number
 }
 
 export interface Animal {

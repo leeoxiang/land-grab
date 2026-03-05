@@ -6,8 +6,20 @@ import type { Plot } from '@/types'
 const STEP         = PLOT_SIZE + PLOT_GAP
 const PLAYER_SPEED = 160 // px/s
 
-declare global { var __fw: { wallet: string | null; onClick: ((p: Plot) => void) | null; focusPlot: ((col: number, row: number) => void) | null } }
-if (!globalThis.__fw) globalThis.__fw = { wallet: null, onClick: null, focusPlot: null }
+declare global {
+  var __fw: {
+    wallet:           string | null
+    onClick:          ((p: Plot) => void) | null
+    focusPlot:        ((col: number, row: number) => void) | null
+    addTreeSprite:    ((treeId: string, plotId: number, type: string, slot: number) => void) | null
+    removeTreeSprite: ((treeId: string) => void) | null
+    refreshPlotTrees: ((plotId: number) => void) | null
+  }
+}
+if (!globalThis.__fw) globalThis.__fw = {
+  wallet: null, onClick: null, focusPlot: null,
+  addTreeSprite: null, removeTreeSprite: null, refreshPlotTrees: null,
+}
 
 export function setSceneCallbacks(wallet: string | null, onClick: (p: Plot) => void) {
   globalThis.__fw.wallet  = wallet
@@ -53,6 +65,14 @@ export class WorldScene extends Phaser.Scene {
 
   // Hired farmer NPCs — keyed by plot id so refreshPlot can replace them
   private farmerSprites: Map<number, Phaser.GameObjects.Sprite[]>
+
+  // Other players (real-time multiplayer)
+  private otherPlayers: Map<string, { sprite: Phaser.GameObjects.Sprite; nameTag: Phaser.GameObjects.Text }>
+
+  // Tree overlay sprites: treeId → Image
+  private treeSprites: Map<string, Phaser.GameObjects.Image>
+  // plotId → Set<treeId> for cleanup
+  private plotTreeIds: Map<number, Set<string>>
 
   // Drag-to-pan state
   private dragStartX:  number
@@ -104,6 +124,9 @@ export class WorldScene extends Phaser.Scene {
     this.coverZoom         = 1
     this.farmerSprites     = new Map()
     this.playerNameTag     = null
+    this.otherPlayers      = new Map()
+    this.treeSprites       = new Map()
+    this.plotTreeIds       = new Map()
   }
 
   preload() {
@@ -137,6 +160,9 @@ export class WorldScene extends Phaser.Scene {
     this.load.image('beehive', '/assets/beehive.png')
 
     // Path decorations
+    // Tree overlay sprite
+    this.load.image('tree-sprite', '/assets/oak_tree.png')
+
     this.load.image('deco-lantern', '/assets/decorations/Lantern.png')
     this.load.spritesheet('deco-flowers', '/assets/decorations/Flowers.png', { frameWidth: 16, frameHeight: 16 })
     this.load.spritesheet('deco-hay',     '/assets/decorations/Hay_Bales.png', { frameWidth: 16, frameHeight: 16 })
@@ -149,7 +175,10 @@ export class WorldScene extends Phaser.Scene {
     this.onPlotClick   = globalThis.__fw?.onClick ?? null
 
     // Bridge: React components call globalThis.__fw.focusPlot(col, row) to teleport
-    globalThis.__fw.focusPlot = (col: number, row: number) => this.focusPlot(col, row, false)
+    globalThis.__fw.focusPlot        = (col, row) => this.focusPlot(col, row, false)
+    globalThis.__fw.addTreeSprite    = (id, plotId, type, slot) => this.addTreeSpriteInternal(id, plotId, type, slot)
+    globalThis.__fw.removeTreeSprite = (id) => this.removeTreeSpriteInternal(id)
+    globalThis.__fw.refreshPlotTrees = (plotId) => this.refreshPlotTreesInternal(plotId)
 
     this.cam    = this.cameras.main
     this.totalW = WORLD_COLS * STEP
@@ -238,6 +267,10 @@ export class WorldScene extends Phaser.Scene {
       : undefined
     const startPlot = ownedPlot ?? this.plots[Phaser.Math.Between(0, this.plots.length - 1)]
     this.focusPlot(startPlot?.col ?? 0, startPlot?.row ?? 0, false)
+
+    // ── Real-time multiplayer — poll other players, push own position ─────────
+    this.time.addEvent({ delay: 2000, callback: this.pollOtherPlayers,  callbackScope: this, loop: true })
+    this.time.addEvent({ delay: 2000, callback: this.pushOwnPosition,   callbackScope: this, loop: true })
 
     // ── Keyboard ──────────────────────────────────────────────────────────────
     this.cursors = this.input.keyboard!.createCursorKeys()
@@ -731,6 +764,122 @@ export class WorldScene extends Phaser.Scene {
     } else {
       this.player.stop()
     }
+  }
+
+  // ─── Real-time multiplayer ─────────────────────────────────────────────────
+
+  private pushOwnPosition() {
+    if (!this.player || !this.walletAddress) return
+    fetch('/api/players', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        wallet:  this.walletAddress,
+        x:       Math.round(this.player.x),
+        y:       Math.round(this.player.y),
+        col:     this.currentCol,
+        row:     this.currentRow,
+        char_id: this.currentCharId,
+      }),
+    }).catch(() => { /* ignore */ })
+  }
+
+  private pollOtherPlayers() {
+    const exclude = encodeURIComponent(this.walletAddress ?? '')
+    fetch(`/api/players?exclude=${exclude}`)
+      .then(r => r.json())
+      .then((players: Array<{ wallet: string; x: number; y: number; char_id: string }>) => {
+        if (!this.scene?.isActive?.()) return
+        const seen = new Set<string>()
+        for (const p of players) {
+          seen.add(p.wallet)
+          const existing = this.otherPlayers.get(p.wallet)
+          if (existing) {
+            this.tweens.add({ targets: existing.sprite, x: p.x, y: p.y, duration: 1800, ease: 'Linear' })
+            existing.nameTag.setPosition(p.x, p.y - 26)
+          } else {
+            const def = CHARACTER_DEFS.find(c => c.id === p.char_id) ?? CHARACTER_DEFS[0]
+            const spr = this.add.sprite(p.x, p.y, def.id, def.downStart)
+            spr.setScale(def.scale).setDepth(9).setAlpha(0.85)
+            const short = `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`
+            const tag   = this.add.text(p.x, p.y - 26, short, {
+              fontSize: '8px', fontFamily: '"Press Start 2P"',
+              color: '#ff8844', backgroundColor: '#00000088',
+              padding: { x: 3, y: 2 },
+            }).setOrigin(0.5, 1).setDepth(11)
+            this.otherPlayers.set(p.wallet, { sprite: spr, nameTag: tag })
+          }
+        }
+        for (const [wallet, obj] of this.otherPlayers) {
+          if (!seen.has(wallet)) {
+            obj.sprite.destroy()
+            obj.nameTag.destroy()
+            this.otherPlayers.delete(wallet)
+          }
+        }
+      })
+      .catch(() => { /* ignore */ })
+  }
+
+  // ─── Tree overlay sprites ───────────────────────────────────────────────────
+
+  // 6 slot positions as fractions of plot size
+  private static readonly TREE_SLOTS = [
+    { xFrac: 0.22, yFrac: 0.28 },
+    { xFrac: 0.50, yFrac: 0.22 },
+    { xFrac: 0.78, yFrac: 0.28 },
+    { xFrac: 0.22, yFrac: 0.68 },
+    { xFrac: 0.50, yFrac: 0.72 },
+    { xFrac: 0.78, yFrac: 0.68 },
+  ]
+
+  private addTreeSpriteInternal(treeId: string, plotId: number, _type: string, slot: number) {
+    // Remove any stale sprite for this treeId first
+    this.removeTreeSpriteInternal(treeId)
+
+    const plot = this.plots.find(p => p.id === plotId)
+    if (!plot) return
+
+    const slotCfg = WorldScene.TREE_SLOTS[slot] ?? WorldScene.TREE_SLOTS[0]
+    const plotX   = plot.col * STEP + PLOT_GAP
+    const plotY   = plot.row * STEP + PLOT_GAP
+    const x       = plotX + slotCfg.xFrac * PLOT_SIZE
+    const y       = plotY + slotCfg.yFrac * PLOT_SIZE
+
+    const img = this.add.image(x, y, 'tree-sprite')
+    img.setScale(1.5).setDepth(7).setOrigin(0.5, 1)
+    this.treeSprites.set(treeId, img)
+
+    if (!this.plotTreeIds.has(plotId)) this.plotTreeIds.set(plotId, new Set())
+    this.plotTreeIds.get(plotId)!.add(treeId)
+  }
+
+  private removeTreeSpriteInternal(treeId: string) {
+    const img = this.treeSprites.get(treeId)
+    if (img) { img.destroy(); this.treeSprites.delete(treeId) }
+    for (const [, ids] of this.plotTreeIds) ids.delete(treeId)
+  }
+
+  private refreshPlotTreesInternal(plotId: number) {
+    // Clear existing tree sprites for this plot
+    const existing = this.plotTreeIds.get(plotId)
+    if (existing) {
+      for (const id of existing) {
+        this.treeSprites.get(id)?.destroy()
+        this.treeSprites.delete(id)
+      }
+      this.plotTreeIds.delete(plotId)
+    }
+
+    // Fetch and re-render from API
+    fetch(`/api/trees?plotId=${plotId}`)
+      .then(r => r.json())
+      .then((trees: Array<{ id: string; tree_type: string; slot: number }>) => {
+        for (const t of trees) {
+          this.addTreeSpriteInternal(t.id, plotId, t.tree_type, t.slot)
+        }
+      })
+      .catch(() => { /* ignore */ })
   }
 
   // ─── Path decorations ──────────────────────────────────────────────────────

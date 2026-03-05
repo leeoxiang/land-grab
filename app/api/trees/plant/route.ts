@@ -4,7 +4,7 @@ import { TREES, PLOT_TIERS } from '@/config/game'
 import type { TreeType, PlotTier } from '@/config/game'
 
 export async function POST(req: Request) {
-  const { plotId, treeType, wallet } = await req.json()
+  const { plotId, treeType, wallet, slot = 0 } = await req.json()
   if (!plotId || !treeType || !wallet) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
     tree_type:  treeType,
     planted_at: plantedAt.toISOString(),
     ready_at:   readyAt.toISOString(),
+    slot:       Math.min(5, Math.max(0, Number(slot) || 0)),
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

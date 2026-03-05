@@ -77,8 +77,8 @@ export default function LiveChat({ wallet }: Props) {
   return (
     <div style={{
       position:      'absolute',
-      right:         68,
-      bottom:        12,
+      right:         12,
+      top:           48,
       width:         220,
       zIndex:        20,
       display:       'flex',

@@ -96,6 +96,8 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   const handlePlotClick = useCallback(async (plot: Plot) => {
     setSelectedPlot(plot)
     setLoadingPlot(true)
+    // Load tree overlays for this plot into the scene
+    globalThis.__fw?.refreshPlotTrees?.(plot.id)
     try {
       const res  = await fetch(`/api/plots/${plot.id}`)
       const data = await res.json()
@@ -678,10 +680,30 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
           boxShadow:      'inset 2px 2px 0 #5a4a9a, inset -2px -2px 0 #1a0a3a, 3px 3px 0 #0a0520',
           cursor:         'pointer',
           padding:        0,
+          gap:            2,
         }}
       >
-        <span style={{ fontSize: 18 }}>⚔️</span>
-        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#cc88ff', marginTop: 1 }}>ALLY</span>
+        <svg width="20" height="20" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
+          {/* crossed swords */}
+          <rect x="1"  y="13" width="2" height="2" fill="#cc88ff"/>
+          <rect x="2"  y="11" width="2" height="2" fill="#cc88ff"/>
+          <rect x="3"  y="9"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="4"  y="7"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="5"  y="5"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="6"  y="3"  width="2" height="2" fill="#9966cc"/>
+          <rect x="7"  y="1"  width="3" height="2" fill="#9966cc"/>
+          <rect x="13" y="13" width="2" height="2" fill="#cc88ff"/>
+          <rect x="11" y="11" width="2" height="2" fill="#cc88ff"/>
+          <rect x="9"  y="9"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="7"  y="7"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="5"  y="5"  width="2" height="2" fill="#cc88ff"/>
+          <rect x="6"  y="3"  width="2" height="2" fill="#9966cc"/>
+          <rect x="6"  y="1"  width="3" height="2" fill="#9966cc"/>
+          {/* guards */}
+          <rect x="0"  y="5"  width="4" height="2" fill="#7755aa"/>
+          <rect x="12" y="5"  width="4" height="2" fill="#7755aa"/>
+        </svg>
+        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#cc88ff' }}>ALLY</span>
       </button>
 
       <button
@@ -703,10 +725,27 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
           boxShadow:      'inset 2px 2px 0 #8a7000, inset -2px -2px 0 #2a2000, 3px 3px 0 #1a1000',
           cursor:         'pointer',
           padding:        0,
+          gap:            2,
         }}
       >
-        <span style={{ fontSize: 18 }}>🤝</span>
-        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#ffd700', marginTop: 1 }}>TRADE</span>
+        <svg width="20" height="20" viewBox="0 0 16 16" style={{ imageRendering: 'pixelated' }}>
+          {/* two hands shaking */}
+          <rect x="0"  y="8"  width="3" height="2" fill="#ffd700"/>
+          <rect x="3"  y="7"  width="2" height="4" fill="#ffd700"/>
+          <rect x="5"  y="6"  width="2" height="1" fill="#ffd700"/>
+          <rect x="5"  y="7"  width="6" height="3" fill="#e8b800"/>
+          <rect x="11" y="7"  width="2" height="4" fill="#ffd700"/>
+          <rect x="13" y="8"  width="3" height="2" fill="#ffd700"/>
+          <rect x="5"  y="5"  width="2" height="1" fill="#ffd700"/>
+          <rect x="7"  y="5"  width="2" height="1" fill="#ffd700"/>
+          <rect x="9"  y="6"  width="2" height="1" fill="#ffd700"/>
+          {/* arrows above */}
+          <rect x="3"  y="3"  width="4" height="1" fill="#a07840"/>
+          <rect x="6"  y="2"  width="1" height="1" fill="#a07840"/>
+          <rect x="9"  y="3"  width="4" height="1" fill="#a07840"/>
+          <rect x="9"  y="2"  width="1" height="1" fill="#a07840"/>
+        </svg>
+        <span style={{ fontSize: 5, fontFamily: '"Press Start 2P", monospace', color: '#ffd700' }}>TRADE</span>
       </button>
 
       {/* ── Chat status bubble (above profile button) ─────── */}
