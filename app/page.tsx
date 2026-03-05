@@ -24,10 +24,15 @@ export default function Home() {
   const canvasRef = useRef<{ openPlot: (id: number) => void } | null>(null)
 
   useEffect(() => {
-    fetch('/api/plots')
-      .then(r => r.json())
-      .then(data => { setPlots(Array.isArray(data) ? data : []); setLoading(false) })
-      .catch(() => setLoading(false))
+    const load = (initial = false) =>
+      fetch('/api/plots')
+        .then(r => r.json())
+        .then(data => { if (Array.isArray(data)) { setPlots(data); if (initial) setLoading(false) } })
+        .catch(() => { if (initial) setLoading(false) })
+
+    load(true)
+    const id = setInterval(() => load(false), 20_000)
+    return () => clearInterval(id)
   }, [])
 
   const myPlotCount = plots.filter(p => p.owner_wallet === publicKey?.toString()).length

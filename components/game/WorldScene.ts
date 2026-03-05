@@ -27,17 +27,18 @@ export function setSceneCallbacks(wallet: string | null, onClick: (p: Plot) => v
 }
 
 export interface SceneState {
-  worldW:     number
-  worldH:     number
-  playerX:    number
-  playerY:    number
-  camLeft:    number
-  camTop:     number
-  camRight:   number
-  camBottom:  number
-  plots:      Plot[]
-  currentCol: number
-  currentRow: number
+  worldW:       number
+  worldH:       number
+  playerX:      number
+  playerY:      number
+  camLeft:      number
+  camTop:       number
+  camRight:     number
+  camBottom:    number
+  plots:        Plot[]
+  currentCol:   number
+  currentRow:   number
+  otherPlayers: Array<{ x: number; y: number }>
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -561,9 +562,10 @@ export class WorldScene extends Phaser.Scene {
       camTop:     this.cam.scrollY,
       camRight:   this.cam.scrollX + this.cam.width  / zoom,
       camBottom:  this.cam.scrollY + this.cam.height / zoom,
-      plots:      this.plots,
-      currentCol: this.currentCol,
-      currentRow: this.currentRow,
+      plots:        this.plots,
+      currentCol:   this.currentCol,
+      currentRow:   this.currentRow,
+      otherPlayers: Array.from(this.otherPlayers.values()).map(p => ({ x: p.sprite.x, y: p.sprite.y })),
     }
   }
 

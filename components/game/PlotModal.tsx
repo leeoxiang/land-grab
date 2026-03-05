@@ -137,9 +137,11 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate, go
     } catch { /* ignore */ }
   }, [plot.id])
 
-  const cfg     = PLOT_TIERS[plot.tier]
-  const isOwner = publicKey && plot.owner_wallet === publicKey.toString()
-  const isFree  = !plot.owner_wallet
+  const cfg           = PLOT_TIERS[plot.tier]
+  // Prefer freshly-fetched detail over stale prop — avoids showing Claim on plots just claimed by others
+  const effectiveOwner = detail?.owner_wallet ?? plot.owner_wallet
+  const isOwner        = !!(publicKey && effectiveOwner === publicKey.toString())
+  const isFree         = !effectiveOwner
 
   // Live clock — tick every second so progress bars animate
   useEffect(() => {
@@ -373,8 +375,8 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate, go
                   {goldenHour && <span style={{ fontSize: 8, color: '#ffd700', fontFamily: '"Press Start 2P", monospace' }}>✨ GOLDEN HOUR</span>}
                 </p>
                 <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>
-                  {plot.owner_wallet
-                    ? isOwner ? 'Your plot' : `Owned by ${plot.owner_wallet.slice(0, 6)}...`
+                  {effectiveOwner
+                    ? isOwner ? 'Your plot' : `Owned by ${effectiveOwner.slice(0, 6)}...`
                     : `Free · ${cfg.claimCost.toLocaleString()} ${GAME_TOKEN.symbol} to claim`}
                 </p>
               </>
@@ -474,7 +476,7 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate, go
           )}
 
           {/* Share card button */}
-          {plot.owner_wallet && (
+          {effectiveOwner && (
             <button
               onClick={handleShare}
               className="pixel-btn w-full py-2 text-sm"

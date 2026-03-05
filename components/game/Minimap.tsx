@@ -63,7 +63,7 @@ export default function Minimap({ sceneRef, onOpenMap }: Props) {
         return
       }
 
-      const { worldW, worldH, playerX, playerY, camLeft, camTop, camRight, camBottom, plots } = state
+      const { worldW, worldH, playerX, playerY, camLeft, camTop, camRight, camBottom, plots, otherPlayers = [] } = state
 
       // Background (path colour)
       ctx.fillStyle = '#5c3d1e'
@@ -108,7 +108,20 @@ export default function Minimap({ sceneRef, onOpenMap }: Props) {
       ctx.lineWidth   = 1.5
       ctx.strokeRect(vx, vy, vw, vh)
 
-      // Player dot
+      // Other player dots (orange)
+      for (const op of otherPlayers) {
+        const ox = op.x / worldW * MAP_W
+        const oy = op.y / worldH * MAP_H
+        ctx.beginPath()
+        ctx.arc(ox, oy, 3, 0, Math.PI * 2)
+        ctx.fillStyle = '#ff8844'
+        ctx.fill()
+        ctx.strokeStyle = '#000'
+        ctx.lineWidth = 0.8
+        ctx.stroke()
+      }
+
+      // Player dot (white — drawn last so it's always on top)
       const dotX = playerX / worldW * MAP_W
       const dotY = playerY / worldH * MAP_H
       ctx.beginPath()
