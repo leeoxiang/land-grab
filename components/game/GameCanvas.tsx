@@ -15,6 +15,7 @@ import ActivityFeed      from './ActivityFeed'
 import AllianceModal     from './AllianceModal'
 import TradeModal        from './TradeModal'
 import AchievementToast  from './AchievementToast'
+import LiveChat          from './LiveChat'
 import { WORLD_COLS, WORLD_ROWS, CROPS, ANIMALS, FISH, ACHIEVEMENT_DEFS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS } from '@/config/game'
 import { getSavedCharacter, CHARACTER_DEFS } from '@/config/characters'
 
@@ -654,6 +655,9 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {/* ── Activity feed ─────────────────────────────────── */}
       {!selectedPlot && <ActivityFeed />}
 
+      {/* ── Live chat ─────────────────────────────────────── */}
+      <LiveChat wallet={publicKey?.toString() ?? null} />
+
       {/* ── Alliance + Trades buttons (bottom-right stack) ── */}
       <button
         onClick={() => setShowAlliance(true)}
@@ -709,76 +713,52 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {publicKey && (
         <div style={{ position: 'absolute', bottom: 68, left: 68, zIndex: 25 }}>
           {chatStatus && (
-            <div style={{
-              background:    'rgba(10,5,0,0.88)',
-              border:        '2px solid #5c3317',
-              color:         '#f0d080',
-              fontSize:      9,
+            <div className="pixel-panel" style={{
+              fontSize:      8,
               padding:       '3px 8px',
               maxWidth:      160,
               whiteSpace:    'nowrap',
               overflow:      'hidden',
               textOverflow:  'ellipsis',
-              fontFamily:    '"Press Start 2P", monospace',
               pointerEvents: 'none',
               marginBottom:  4,
+              boxShadow:     'inset 1px 1px 0 #e8c090, inset -1px -1px 0 #8b5a2b, 2px 2px 0 #3a1f0a',
             }}>
-              💬 {chatStatus}
+              {chatStatus}
             </div>
           )}
           <button
             onClick={() => setShowChatInput(v => !v)}
-            style={{
-              background:  'rgba(10,5,0,0.7)',
-              border:      '2px solid #5c3317',
-              color:       '#a07840',
-              fontSize:    8,
-              padding:     '3px 6px',
-              cursor:      'pointer',
-              fontFamily:  '"Press Start 2P", monospace',
-            }}
+            className="pixel-btn"
+            style={{ fontSize: 7, padding: '4px 8px' }}
           >
             {showChatInput ? 'Cancel' : 'Status'}
           </button>
           {showChatInput && (
-            <div style={{
-              position:   'absolute',
-              bottom:     '100%',
-              left:       0,
+            <div className="pixel-panel" style={{
+              position:     'absolute',
+              bottom:       '100%',
+              left:         0,
               marginBottom: 4,
-              display:    'flex',
-              gap:        4,
-              background: 'rgba(10,5,0,0.95)',
-              border:     '2px solid #5c3317',
-              padding:    4,
-              zIndex:     30,
+              display:      'flex',
+              gap:          4,
+              padding:      6,
+              zIndex:       30,
+              boxShadow:    'inset 1px 1px 0 #e8c090, inset -1px -1px 0 #8b5a2b, 3px 3px 0 #3a1f0a',
             }}>
               <input
                 autoFocus
+                className="pixel-input"
                 value={chatDraft}
                 onChange={e => setChatDraft(e.target.value.slice(0, 24))}
                 onKeyDown={e => { if (e.key === 'Enter') saveChatStatus(chatDraft) }}
-                placeholder="Your status (24 chars)"
-                style={{
-                  background:  '#1a0a00',
-                  border:      '1px solid #5c3317',
-                  color:       '#f0d080',
-                  fontSize:    9,
-                  padding:     '2px 6px',
-                  width:       150,
-                  fontFamily:  '"Press Start 2P", monospace',
-                }}
+                placeholder="Your status..."
+                style={{ width: 140, fontSize: 8 }}
               />
               <button
                 onClick={() => saveChatStatus(chatDraft)}
-                style={{
-                  background: '#2d5a1b',
-                  border:     '2px solid #1a3a0d',
-                  color:      '#ccffcc',
-                  fontSize:   8,
-                  padding:    '2px 6px',
-                  cursor:     'pointer',
-                }}
+                className="pixel-btn"
+                style={{ fontSize: 7, padding: '2px 6px', background: '#2d5a1b', borderColor: '#1a3a0d', color: '#ccffcc' }}
               >
                 Set
               </button>

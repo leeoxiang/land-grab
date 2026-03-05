@@ -248,6 +248,9 @@ export class WorldScene extends Phaser.Scene {
       right: Phaser.Input.Keyboard.KeyCodes.D,
     }) as Record<string, Phaser.Input.Keyboard.Key>
 
+    // Allow key events to pass through to <input>/<textarea> elements
+    this.input.keyboard!.disableGlobalCapture()
+
     // ── Scroll to zoom ────────────────────────────────────────────────────────
     this.input.on('wheel', (_: unknown, __: unknown, ___: unknown, deltaY: number) => {
       const z = Phaser.Math.Clamp(this.cam!.zoom - deltaY * 0.001, 0.3, 6)
