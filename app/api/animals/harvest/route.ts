@@ -4,6 +4,7 @@ import { ANIMALS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS, GOLDEN_HOUR_
 import type { AnimalType } from '@/config/game'
 import { logEvent } from '@/lib/logEvent'
 import { checkAchievements } from '@/lib/checkAchievements'
+import { ensurePlayer } from '@/lib/ensurePlayer'
 
 function isGoldenHour() {
   return (Date.now() % GOLDEN_HOUR_INTERVAL_MS) < GOLDEN_HOUR_DURATION_MS
@@ -13,6 +14,7 @@ export async function POST(req: Request) {
   const { animalId, wallet } = await req.json()
   if (!animalId || !wallet) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
+  await ensurePlayer(wallet)
   const db = supabaseAdmin()
 
   const { data: animal } = await db
@@ -51,7 +53,8 @@ export async function POST(req: Request) {
   if (existing) {
     await db.from('inventory').update({ quantity: existing.quantity + amount }).eq('id', existing.id)
   } else {
-    await db.from('inventory').insert({ player_wallet: wallet, item_type: animalCfg.produces, quantity: amount })
+    const { error: invErr } = await db.from('inventory').insert({ player_wallet: wallet, item_type: animalCfg.produces, quantity: amount })
+    if (invErr) return NextResponse.json({ error: invErr.message }, { status: 500 })
   }
 
   // Count animals for achievement check

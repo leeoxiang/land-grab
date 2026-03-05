@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     // Deduct fail cost
     await db.from('players').update({ balance: attacker.balance - STEAL_CONFIG.failCost }).eq('wallet', wallet)
     await db.from('steal_attempts').insert({
-      attacker,
+      attacker:     wallet,
       target_plot:  targetPlotId,
       attempted_at: now.toISOString(),
       next_steal_at: nextStealAt.toISOString(),

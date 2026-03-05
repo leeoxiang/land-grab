@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { TREES } from '@/config/game'
 import type { TreeType } from '@/config/game'
+import { ensurePlayer } from '@/lib/ensurePlayer'
 
 export async function POST(req: Request) {
   const { treeId, wallet } = await req.json()
@@ -9,6 +10,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
+  await ensurePlayer(wallet)
   const db = supabaseAdmin()
 
   // Load tree + verify ownership through plot
@@ -46,20 +48,14 @@ export async function POST(req: Request) {
 
   // Add yield to inventory
   const itemType = `${tree.tree_type}_fruit`
-  await db.from('inventory').upsert({
-    player_wallet: wallet,
-    item_type:     itemType,
-    quantity:      treeCfg.yield,
-  }, {
-    onConflict: 'player_wallet,item_type',
-  })
+  const { data: existing } = await db.from('inventory')
+    .select('*').eq('player_wallet', wallet).eq('item_type', itemType).single()
 
-  // Increment if already exists
-  await db.rpc('increment_inventory', {
-    p_wallet:    wallet,
-    p_item_type: itemType,
-    p_qty:       treeCfg.yield,
-  }).maybeSingle()
+  if (existing) {
+    await db.from('inventory').update({ quantity: existing.quantity + treeCfg.yield }).eq('id', existing.id)
+  } else {
+    await db.from('inventory').insert({ player_wallet: wallet, item_type: itemType, quantity: treeCfg.yield })
+  }
 
   return NextResponse.json({
     harvested:    itemType,

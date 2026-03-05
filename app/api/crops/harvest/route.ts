@@ -4,6 +4,7 @@ import { CROPS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS, GOLDEN_HOUR_YI
 import type { CropType } from '@/config/game'
 import { logEvent } from '@/lib/logEvent'
 import { checkAchievements } from '@/lib/checkAchievements'
+import { ensurePlayer } from '@/lib/ensurePlayer'
 
 function isGoldenHour() {
   return (Date.now() % GOLDEN_HOUR_INTERVAL_MS) < GOLDEN_HOUR_DURATION_MS
@@ -13,6 +14,7 @@ export async function POST(req: Request) {
   const { cropId, wallet } = await req.json()
   if (!cropId || !wallet) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
+  await ensurePlayer(wallet)
   const db = supabaseAdmin()
 
   // Get crop + verify ownership via plot (also fetch upgrade_level)

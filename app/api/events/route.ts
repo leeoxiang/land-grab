@@ -14,6 +14,6 @@ export async function GET(req: Request) {
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json([])
   return NextResponse.json(data ?? [])
 }

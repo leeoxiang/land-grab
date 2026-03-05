@@ -4,6 +4,7 @@ import { FISH, FISH_COOLDOWN_MS, PLOT_TIERS } from '@/config/game'
 import type { FishType, PlotTier } from '@/config/game'
 import { readFileSync } from 'fs'
 import { join } from 'path'
+import { ensurePlayer } from '@/lib/ensurePlayer'
 
 function rollFish(tier: PlotTier): FishType {
   // Higher tiers get a small luck bonus (shift random toward rarer fish)
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
+  await ensurePlayer(wallet)
   const db = supabaseAdmin()
 
   // Verify ownership
@@ -73,17 +75,15 @@ export async function POST(req: Request) {
   await db.from('plots').update({ last_fish_at: now.toISOString() }).eq('id', plotId)
 
   // Add to inventory
-  await db.from('inventory').upsert({
-    player_wallet: wallet,
-    item_type:     `fish_${fishType}`,
-    quantity:      1,
-  }, { onConflict: 'player_wallet,item_type' })
+  const fishItemType = `fish_${fishType}`
+  const { data: existingFish } = await db.from('inventory')
+    .select('*').eq('player_wallet', wallet).eq('item_type', fishItemType).single()
 
-  await db.rpc('increment_inventory', {
-    p_wallet:    wallet,
-    p_item_type: `fish_${fishType}`,
-    p_qty:       1,
-  }).maybeSingle()
+  if (existingFish) {
+    await db.from('inventory').update({ quantity: existingFish.quantity + 1 }).eq('id', existingFish.id)
+  } else {
+    await db.from('inventory').insert({ player_wallet: wallet, item_type: fishItemType, quantity: 1 })
+  }
 
   const nextFishAt = new Date(now.getTime() + FISH_COOLDOWN_MS)
   return NextResponse.json({
