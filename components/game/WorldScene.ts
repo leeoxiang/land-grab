@@ -771,7 +771,10 @@ export class WorldScene extends Phaser.Scene {
   // ─── Real-time multiplayer ─────────────────────────────────────────────────
 
   private pushOwnPosition() {
-    if (!this.player || !this.walletAddress) return
+    if (!this.player || !this.walletAddress) {
+      console.warn('[presence] push skipped — player:', !!this.player, 'wallet:', this.walletAddress)
+      return
+    }
     fetch('/api/players', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -783,7 +786,9 @@ export class WorldScene extends Phaser.Scene {
         row:     this.currentRow,
         char_id: this.currentCharId,
       }),
-    }).catch(() => { /* ignore */ })
+    })
+      .then(r => { if (!r.ok) r.text().then(t => console.warn('[presence] push HTTP', r.status, t)) })
+      .catch(e => console.warn('[presence] push error:', e))
   }
 
   private pollOtherPlayers() {

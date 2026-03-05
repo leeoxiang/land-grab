@@ -28,9 +28,10 @@ export async function POST(req: Request) {
   }
 
   const db = supabaseAdmin()
-  await db.from('player_positions').upsert(
+  const { error } = await db.from('player_positions').upsert(
     { wallet, x, y, col, row: row ?? 0, char_id: char_id ?? 'player', updated_at: new Date().toISOString() },
     { onConflict: 'wallet' },
   )
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }
