@@ -1,0 +1,16 @@
+{
+  "treeCount": 20,
+  "farmlandBlocks": 2,
+  "animals": [
+    "pig"
+  ],
+  "hasBeehive": false,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "village",
+  "score": 71,
+  "tier": "gold",
+  "plotNumber": 83,
+  "filename": "plot-083.png"
+}

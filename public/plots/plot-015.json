@@ -1,0 +1,17 @@
+{
+  "treeCount": 9,
+  "farmlandBlocks": 4,
+  "animals": [
+    "sheep",
+    "sheep"
+  ],
+  "hasBeehive": false,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "crossroads",
+  "score": 65,
+  "tier": "silver",
+  "plotNumber": 15,
+  "filename": "plot-015.png"
+}

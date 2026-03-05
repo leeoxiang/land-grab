@@ -1,0 +1,16 @@
+{
+  "treeCount": 19,
+  "farmlandBlocks": 9,
+  "animals": [
+    "sheep"
+  ],
+  "hasBeehive": false,
+  "hasPath": false,
+  "hasWindmill": true,
+  "hasPond": false,
+  "layout": "windmill_farm",
+  "score": 105,
+  "tier": "diamond",
+  "plotNumber": 64,
+  "filename": "plot-064.png"
+}

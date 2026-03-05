@@ -1,0 +1,16 @@
+{
+  "treeCount": 16,
+  "farmlandBlocks": 2,
+  "animals": [
+    "chicken"
+  ],
+  "hasBeehive": false,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "orchard",
+  "score": 65,
+  "tier": "silver",
+  "plotNumber": 52,
+  "filename": "plot-052.png"
+}

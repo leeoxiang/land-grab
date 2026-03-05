@@ -1,0 +1,16 @@
+{
+  "treeCount": 23,
+  "farmlandBlocks": 6,
+  "animals": [
+    "cow"
+  ],
+  "hasBeehive": true,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "farm",
+  "score": 92,
+  "tier": "gold",
+  "plotNumber": 79,
+  "filename": "plot-079.png"
+}

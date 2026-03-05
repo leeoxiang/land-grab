@@ -1,0 +1,16 @@
+{
+  "treeCount": 17,
+  "farmlandBlocks": 8,
+  "animals": [
+    "pig"
+  ],
+  "hasBeehive": true,
+  "hasPath": false,
+  "hasWindmill": false,
+  "hasPond": true,
+  "layout": "pond",
+  "score": 100,
+  "tier": "diamond",
+  "plotNumber": 37,
+  "filename": "plot-037.png"
+}

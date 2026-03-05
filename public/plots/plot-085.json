@@ -1,0 +1,16 @@
+{
+  "treeCount": 16,
+  "farmlandBlocks": 6,
+  "animals": [
+    "sheep"
+  ],
+  "hasBeehive": true,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "dual_field",
+  "score": 83,
+  "tier": "gold",
+  "plotNumber": 85,
+  "filename": "plot-085.png"
+}

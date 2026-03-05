@@ -1,0 +1,1624 @@
+[
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 5,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 83,
+    "tier": "gold",
+    "plotNumber": 1,
+    "filename": "plot-001.png"
+  },
+  {
+    "treeCount": 8,
+    "farmlandBlocks": 3,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 50,
+    "tier": "silver",
+    "plotNumber": 2,
+    "filename": "plot-002.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 9,
+    "animals": [
+      "pig",
+      "cow",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 129,
+    "tier": "diamond",
+    "plotNumber": 3,
+    "filename": "plot-003.png"
+  },
+  {
+    "treeCount": 19,
+    "farmlandBlocks": 6,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 72,
+    "tier": "gold",
+    "plotNumber": 4,
+    "filename": "plot-004.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 6,
+    "animals": [
+      "sheep",
+      "chicken",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 103,
+    "tier": "diamond",
+    "plotNumber": 5,
+    "filename": "plot-005.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 8,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 100,
+    "tier": "diamond",
+    "plotNumber": 6,
+    "filename": "plot-006.png"
+  },
+  {
+    "treeCount": 18,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 66,
+    "tier": "silver",
+    "plotNumber": 7,
+    "filename": "plot-007.png"
+  },
+  {
+    "treeCount": 18,
+    "farmlandBlocks": 2,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 66,
+    "tier": "silver",
+    "plotNumber": 8,
+    "filename": "plot-008.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 9,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 111,
+    "tier": "diamond",
+    "plotNumber": 9,
+    "filename": "plot-009.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 6,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 92,
+    "tier": "gold",
+    "plotNumber": 10,
+    "filename": "plot-010.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 54,
+    "tier": "silver",
+    "plotNumber": 11,
+    "filename": "plot-011.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 6,
+    "animals": [
+      "cow",
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 90,
+    "tier": "gold",
+    "plotNumber": 12,
+    "filename": "plot-012.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 9,
+    "animals": [
+      "pig",
+      "pig"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 130,
+    "tier": "diamond",
+    "plotNumber": 13,
+    "filename": "plot-013.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 3,
+    "animals": [
+      "sheep",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 64,
+    "tier": "silver",
+    "plotNumber": 14,
+    "filename": "plot-014.png"
+  },
+  {
+    "treeCount": 9,
+    "farmlandBlocks": 4,
+    "animals": [
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 65,
+    "tier": "silver",
+    "plotNumber": 15,
+    "filename": "plot-015.png"
+  },
+  {
+    "treeCount": 29,
+    "farmlandBlocks": 9,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 115,
+    "tier": "diamond",
+    "plotNumber": 16,
+    "filename": "plot-016.png"
+  },
+  {
+    "treeCount": 12,
+    "farmlandBlocks": 3,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 48,
+    "tier": "silver",
+    "plotNumber": 17,
+    "filename": "plot-017.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 3,
+    "animals": [
+      "cow",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 95,
+    "tier": "diamond",
+    "plotNumber": 18,
+    "filename": "plot-018.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 2,
+    "animals": [
+      "sheep",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 85,
+    "tier": "gold",
+    "plotNumber": 19,
+    "filename": "plot-019.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 8,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 93,
+    "tier": "gold",
+    "plotNumber": 20,
+    "filename": "plot-020.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 9,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 120,
+    "tier": "diamond",
+    "plotNumber": 21,
+    "filename": "plot-021.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 6,
+    "animals": [
+      "pig",
+      "pig",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 101,
+    "tier": "diamond",
+    "plotNumber": 22,
+    "filename": "plot-022.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 6,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 76,
+    "tier": "gold",
+    "plotNumber": 23,
+    "filename": "plot-023.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 56,
+    "tier": "silver",
+    "plotNumber": 24,
+    "filename": "plot-024.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 9,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 101,
+    "tier": "diamond",
+    "plotNumber": 25,
+    "filename": "plot-025.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 54,
+    "tier": "silver",
+    "plotNumber": 26,
+    "filename": "plot-026.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 6,
+    "animals": [
+      "sheep",
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 98,
+    "tier": "diamond",
+    "plotNumber": 27,
+    "filename": "plot-027.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 9,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 97,
+    "tier": "diamond",
+    "plotNumber": 28,
+    "filename": "plot-028.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 60,
+    "tier": "silver",
+    "plotNumber": 29,
+    "filename": "plot-029.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 56,
+    "tier": "silver",
+    "plotNumber": 30,
+    "filename": "plot-030.png"
+  },
+  {
+    "treeCount": 19,
+    "farmlandBlocks": 9,
+    "animals": [
+      "chicken",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 115,
+    "tier": "diamond",
+    "plotNumber": 31,
+    "filename": "plot-031.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 5,
+    "animals": [
+      "chicken",
+      "cow",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 109,
+    "tier": "diamond",
+    "plotNumber": 32,
+    "filename": "plot-032.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 9,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 107,
+    "tier": "diamond",
+    "plotNumber": 33,
+    "filename": "plot-033.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 4,
+    "animals": [
+      "cow",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 69,
+    "tier": "gold",
+    "plotNumber": 34,
+    "filename": "plot-034.png"
+  },
+  {
+    "treeCount": 32,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken",
+      "pig",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 121,
+    "tier": "diamond",
+    "plotNumber": 35,
+    "filename": "plot-035.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 2,
+    "animals": [
+      "pig",
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 93,
+    "tier": "gold",
+    "plotNumber": 36,
+    "filename": "plot-036.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 8,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 100,
+    "tier": "diamond",
+    "plotNumber": 37,
+    "filename": "plot-037.png"
+  },
+  {
+    "treeCount": 12,
+    "farmlandBlocks": 1,
+    "animals": [
+      "cow",
+      "cow",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 72,
+    "tier": "gold",
+    "plotNumber": 38,
+    "filename": "plot-038.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 3,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 53,
+    "tier": "silver",
+    "plotNumber": 39,
+    "filename": "plot-039.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 9,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 107,
+    "tier": "diamond",
+    "plotNumber": 40,
+    "filename": "plot-040.png"
+  },
+  {
+    "treeCount": 9,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 45,
+    "tier": "silver",
+    "plotNumber": 41,
+    "filename": "plot-041.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 9,
+    "animals": [
+      "pig",
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 131,
+    "tier": "diamond",
+    "plotNumber": 42,
+    "filename": "plot-042.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 72,
+    "tier": "gold",
+    "plotNumber": 43,
+    "filename": "plot-043.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 5,
+    "animals": [
+      "pig",
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 111,
+    "tier": "diamond",
+    "plotNumber": 44,
+    "filename": "plot-044.png"
+  },
+  {
+    "treeCount": 9,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 52,
+    "tier": "silver",
+    "plotNumber": 45,
+    "filename": "plot-045.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 8,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 103,
+    "tier": "diamond",
+    "plotNumber": 46,
+    "filename": "plot-046.png"
+  },
+  {
+    "treeCount": 30,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow",
+      "chicken",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 114,
+    "tier": "diamond",
+    "plotNumber": 47,
+    "filename": "plot-047.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 6,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 90,
+    "tier": "gold",
+    "plotNumber": 48,
+    "filename": "plot-048.png"
+  },
+  {
+    "treeCount": 8,
+    "farmlandBlocks": 4,
+    "animals": [
+      "chicken",
+      "sheep",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 73,
+    "tier": "gold",
+    "plotNumber": 49,
+    "filename": "plot-049.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 63,
+    "tier": "silver",
+    "plotNumber": 50,
+    "filename": "plot-050.png"
+  },
+  {
+    "treeCount": 18,
+    "farmlandBlocks": 8,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 85,
+    "tier": "gold",
+    "plotNumber": 51,
+    "filename": "plot-051.png"
+  },
+  {
+    "treeCount": 16,
+    "farmlandBlocks": 2,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 65,
+    "tier": "silver",
+    "plotNumber": 52,
+    "filename": "plot-052.png"
+  },
+  {
+    "treeCount": 18,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 77,
+    "tier": "gold",
+    "plotNumber": 53,
+    "filename": "plot-053.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 2,
+    "animals": [
+      "pig",
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 94,
+    "tier": "gold",
+    "plotNumber": 54,
+    "filename": "plot-054.png"
+  },
+  {
+    "treeCount": 19,
+    "farmlandBlocks": 2,
+    "animals": [
+      "chicken",
+      "cow",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 88,
+    "tier": "gold",
+    "plotNumber": 55,
+    "filename": "plot-055.png"
+  },
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 5,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 83,
+    "tier": "gold",
+    "plotNumber": 56,
+    "filename": "plot-056.png"
+  },
+  {
+    "treeCount": 29,
+    "farmlandBlocks": 3,
+    "animals": [
+      "cow",
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 112,
+    "tier": "diamond",
+    "plotNumber": 57,
+    "filename": "plot-057.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 3,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 79,
+    "tier": "gold",
+    "plotNumber": 58,
+    "filename": "plot-058.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 4,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 66,
+    "tier": "silver",
+    "plotNumber": 59,
+    "filename": "plot-059.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 8,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 93,
+    "tier": "gold",
+    "plotNumber": 60,
+    "filename": "plot-060.png"
+  },
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 9,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 117,
+    "tier": "diamond",
+    "plotNumber": 61,
+    "filename": "plot-061.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 9,
+    "animals": [
+      "cow",
+      "pig",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 133,
+    "tier": "diamond",
+    "plotNumber": 62,
+    "filename": "plot-062.png"
+  },
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow",
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 104,
+    "tier": "diamond",
+    "plotNumber": 63,
+    "filename": "plot-063.png"
+  },
+  {
+    "treeCount": 19,
+    "farmlandBlocks": 9,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 105,
+    "tier": "diamond",
+    "plotNumber": 64,
+    "filename": "plot-064.png"
+  },
+  {
+    "treeCount": 9,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 39,
+    "tier": "bronze",
+    "plotNumber": 65,
+    "filename": "plot-065.png"
+  },
+  {
+    "treeCount": 16,
+    "farmlandBlocks": 2,
+    "animals": [
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 72,
+    "tier": "gold",
+    "plotNumber": 66,
+    "filename": "plot-066.png"
+  },
+  {
+    "treeCount": 8,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken",
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 77,
+    "tier": "gold",
+    "plotNumber": 67,
+    "filename": "plot-067.png"
+  },
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 6,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 86,
+    "tier": "gold",
+    "plotNumber": 68,
+    "filename": "plot-068.png"
+  },
+  {
+    "treeCount": 19,
+    "farmlandBlocks": 8,
+    "animals": [
+      "pig",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 107,
+    "tier": "diamond",
+    "plotNumber": 69,
+    "filename": "plot-069.png"
+  },
+  {
+    "treeCount": 12,
+    "farmlandBlocks": 4,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 61,
+    "tier": "silver",
+    "plotNumber": 70,
+    "filename": "plot-070.png"
+  },
+  {
+    "treeCount": 29,
+    "farmlandBlocks": 3,
+    "animals": [
+      "sheep",
+      "chicken"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 112,
+    "tier": "diamond",
+    "plotNumber": 71,
+    "filename": "plot-071.png"
+  },
+  {
+    "treeCount": 37,
+    "farmlandBlocks": 3,
+    "animals": [
+      "sheep",
+      "chicken",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 131,
+    "tier": "diamond",
+    "plotNumber": 72,
+    "filename": "plot-072.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 48,
+    "tier": "silver",
+    "plotNumber": 73,
+    "filename": "plot-073.png"
+  },
+  {
+    "treeCount": 26,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken",
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 116,
+    "tier": "diamond",
+    "plotNumber": 74,
+    "filename": "plot-074.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 4,
+    "animals": [
+      "chicken",
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 77,
+    "tier": "gold",
+    "plotNumber": 75,
+    "filename": "plot-075.png"
+  },
+  {
+    "treeCount": 17,
+    "farmlandBlocks": 2,
+    "animals": [
+      "pig",
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 81,
+    "tier": "gold",
+    "plotNumber": 76,
+    "filename": "plot-076.png"
+  },
+  {
+    "treeCount": 36,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 119,
+    "tier": "diamond",
+    "plotNumber": 77,
+    "filename": "plot-077.png"
+  },
+  {
+    "treeCount": 16,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 52,
+    "tier": "silver",
+    "plotNumber": 78,
+    "filename": "plot-078.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 6,
+    "animals": [
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "farm",
+    "score": 92,
+    "tier": "gold",
+    "plotNumber": 79,
+    "filename": "plot-079.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 9,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 107,
+    "tier": "diamond",
+    "plotNumber": 80,
+    "filename": "plot-080.png"
+  },
+  {
+    "treeCount": 30,
+    "farmlandBlocks": 5,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 93,
+    "tier": "gold",
+    "plotNumber": 81,
+    "filename": "plot-081.png"
+  },
+  {
+    "treeCount": 11,
+    "farmlandBlocks": 4,
+    "animals": [
+      "pig",
+      "sheep",
+      "pig"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 86,
+    "tier": "gold",
+    "plotNumber": 82,
+    "filename": "plot-082.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 2,
+    "animals": [
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 71,
+    "tier": "gold",
+    "plotNumber": 83,
+    "filename": "plot-083.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 9,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 105,
+    "tier": "diamond",
+    "plotNumber": 84,
+    "filename": "plot-084.png"
+  },
+  {
+    "treeCount": 16,
+    "farmlandBlocks": 6,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 83,
+    "tier": "gold",
+    "plotNumber": 85,
+    "filename": "plot-085.png"
+  },
+  {
+    "treeCount": 21,
+    "farmlandBlocks": 5,
+    "animals": [
+      "pig",
+      "chicken"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 102,
+    "tier": "diamond",
+    "plotNumber": 86,
+    "filename": "plot-086.png"
+  },
+  {
+    "treeCount": 22,
+    "farmlandBlocks": 9,
+    "animals": [
+      "chicken",
+      "chicken",
+      "pig"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 138,
+    "tier": "diamond",
+    "plotNumber": 87,
+    "filename": "plot-087.png"
+  },
+  {
+    "treeCount": 18,
+    "farmlandBlocks": 9,
+    "animals": [
+      "cow",
+      "pig"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": true,
+    "hasPond": false,
+    "layout": "windmill_farm",
+    "score": 113,
+    "tier": "diamond",
+    "plotNumber": 88,
+    "filename": "plot-088.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken",
+      "chicken",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 103,
+    "tier": "diamond",
+    "plotNumber": 89,
+    "filename": "plot-089.png"
+  },
+  {
+    "treeCount": 10,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 47,
+    "tier": "silver",
+    "plotNumber": 90,
+    "filename": "plot-090.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 2,
+    "animals": [
+      "cow",
+      "chicken",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "village",
+    "score": 97,
+    "tier": "diamond",
+    "plotNumber": 91,
+    "filename": "plot-091.png"
+  },
+  {
+    "treeCount": 25,
+    "farmlandBlocks": 6,
+    "animals": [
+      "sheep"
+    ],
+    "hasBeehive": true,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "dual_field",
+    "score": 101,
+    "tier": "diamond",
+    "plotNumber": 92,
+    "filename": "plot-092.png"
+  },
+  {
+    "treeCount": 23,
+    "farmlandBlocks": 3,
+    "animals": [
+      "pig",
+      "sheep",
+      "cow"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 103,
+    "tier": "diamond",
+    "plotNumber": 93,
+    "filename": "plot-093.png"
+  },
+  {
+    "treeCount": 35,
+    "farmlandBlocks": 3,
+    "animals": [
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 107,
+    "tier": "diamond",
+    "plotNumber": 94,
+    "filename": "plot-094.png"
+  },
+  {
+    "treeCount": 31,
+    "farmlandBlocks": 3,
+    "animals": [
+      "cow",
+      "cow"
+    ],
+    "hasBeehive": true,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 116,
+    "tier": "diamond",
+    "plotNumber": 95,
+    "filename": "plot-095.png"
+  },
+  {
+    "treeCount": 8,
+    "farmlandBlocks": 4,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 43,
+    "tier": "bronze",
+    "plotNumber": 96,
+    "filename": "plot-096.png"
+  },
+  {
+    "treeCount": 24,
+    "farmlandBlocks": 2,
+    "animals": [
+      "sheep",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "forest_edge",
+    "score": 92,
+    "tier": "gold",
+    "plotNumber": 97,
+    "filename": "plot-097.png"
+  },
+  {
+    "treeCount": 20,
+    "farmlandBlocks": 8,
+    "animals": [
+      "pig",
+      "chicken",
+      "chicken"
+    ],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": true,
+    "layout": "pond",
+    "score": 119,
+    "tier": "diamond",
+    "plotNumber": 98,
+    "filename": "plot-098.png"
+  },
+  {
+    "treeCount": 8,
+    "farmlandBlocks": 4,
+    "animals": [
+      "sheep",
+      "chicken",
+      "sheep"
+    ],
+    "hasBeehive": false,
+    "hasPath": true,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "crossroads",
+    "score": 73,
+    "tier": "gold",
+    "plotNumber": 99,
+    "filename": "plot-099.png"
+  },
+  {
+    "treeCount": 16,
+    "farmlandBlocks": 2,
+    "animals": [],
+    "hasBeehive": false,
+    "hasPath": false,
+    "hasWindmill": false,
+    "hasPond": false,
+    "layout": "orchard",
+    "score": 52,
+    "tier": "silver",
+    "plotNumber": 100,
+    "filename": "plot-100.png"
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "treeCount": 37,
+  "farmlandBlocks": 3,
+  "animals": [
+    "sheep",
+    "chicken",
+    "chicken"
+  ],
+  "hasBeehive": false,
+  "hasPath": false,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "forest_edge",
+  "score": 131,
+  "tier": "diamond",
+  "plotNumber": 72,
+  "filename": "plot-072.png"
+}

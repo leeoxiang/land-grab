@@ -1,0 +1,14 @@
+{
+  "treeCount": 21,
+  "farmlandBlocks": 2,
+  "animals": [],
+  "hasBeehive": false,
+  "hasPath": true,
+  "hasWindmill": false,
+  "hasPond": false,
+  "layout": "village",
+  "score": 63,
+  "tier": "silver",
+  "plotNumber": 50,
+  "filename": "plot-050.png"
+}
