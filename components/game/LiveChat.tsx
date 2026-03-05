@@ -11,6 +11,7 @@ interface ChatMsg {
 
 function shortWallet(w: string) {
   if (!w || w.length < 8) return w
+  if (w.startsWith('guest_')) return 'Guest'
   return `${w.slice(0, 4)}..${w.slice(-3)}`
 }
 
@@ -22,7 +23,7 @@ function timeAgo(iso: string) {
 }
 
 interface Props {
-  wallet: string | null
+  wallet: string
 }
 
 export default function LiveChat({ wallet }: Props) {
@@ -55,7 +56,7 @@ export default function LiveChat({ wallet }: Props) {
   }, [msgs, collapsed])
 
   const send = async () => {
-    if (!wallet || !draft.trim() || sending) return
+    if (!draft.trim() || sending) return
     setSending(true)
     try {
       const res = await fetch('/api/chat', {

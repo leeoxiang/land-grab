@@ -307,16 +307,23 @@ DROP POLICY IF EXISTS "goblins_public_read"   ON goblins;
 DROP POLICY IF EXISTS "events_public_read"    ON plot_events;
 DROP POLICY IF EXISTS "chat_public_read"      ON chat_messages;
 DROP POLICY IF EXISTS "tribes_public_read"    ON tribes;
-DROP POLICY IF EXISTS "members_public_read"   ON tribe_members;
-DROP POLICY IF EXISTS "positions_public_read" ON player_positions;
+DROP POLICY IF EXISTS "members_public_read"    ON tribe_members;
+DROP POLICY IF EXISTS "positions_public_read"  ON player_positions;
+DROP POLICY IF EXISTS "chat_public_write"      ON chat_messages;
+DROP POLICY IF EXISTS "positions_public_write" ON player_positions;
 
-CREATE POLICY "plots_public_read"     ON plots          FOR SELECT USING (true);
-CREATE POLICY "goblins_public_read"   ON goblins        FOR SELECT USING (true);
-CREATE POLICY "events_public_read"    ON plot_events    FOR SELECT USING (true);
-CREATE POLICY "chat_public_read"      ON chat_messages  FOR SELECT USING (true);
-CREATE POLICY "tribes_public_read"    ON tribes         FOR SELECT USING (true);
-CREATE POLICY "members_public_read"   ON tribe_members  FOR SELECT USING (true);
-CREATE POLICY "positions_public_read" ON player_positions FOR SELECT USING (true);
+CREATE POLICY "plots_public_read"      ON plots             FOR SELECT USING (true);
+CREATE POLICY "goblins_public_read"    ON goblins           FOR SELECT USING (true);
+CREATE POLICY "events_public_read"     ON plot_events       FOR SELECT USING (true);
+CREATE POLICY "chat_public_read"       ON chat_messages     FOR SELECT USING (true);
+CREATE POLICY "tribes_public_read"     ON tribes            FOR SELECT USING (true);
+CREATE POLICY "members_public_read"    ON tribe_members     FOR SELECT USING (true);
+CREATE POLICY "positions_public_read"  ON player_positions  FOR SELECT USING (true);
+
+-- Write policies — allows the server (service role bypasses anyway) and anon clients to write
+CREATE POLICY "chat_public_write"      ON chat_messages     FOR INSERT WITH CHECK (true);
+CREATE POLICY "positions_public_write" ON player_positions  FOR INSERT WITH CHECK (true);
+CREATE POLICY "positions_public_update" ON player_positions FOR UPDATE USING (true) WITH CHECK (true);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- OPTIONAL: Seed 100 plots if you haven't used /api/generator/save yet.

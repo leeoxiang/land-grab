@@ -44,6 +44,19 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   const starterChecked = useRef<string | null>(null)
   const { publicKey } = useWallet()
 
+  // Stable guest ID — created once, stored in localStorage, used when wallet not connected
+  const [guestId] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'guest_00000000'
+    const saved = localStorage.getItem('farm:guestId')
+    if (saved) return saved
+    const id = `guest_${Math.random().toString(36).slice(2, 10)}`
+    localStorage.setItem('farm:guestId', id)
+    return id
+  })
+
+  // The effective player ID — real wallet when connected, guest ID otherwise
+  const playerId = publicKey?.toString() ?? guestId
+
   // Plot modal (opened on click)
   const [selectedPlot, setSelectedPlot] = useState<Plot | null>(null)
   const [plotDetail,   setPlotDetail]   = useState<PlotFull | null>(null)
@@ -117,7 +130,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
 
     const initPhaser = async () => {
       const Phaser = (await import('phaser')).default
-      setSceneCallbacks(publicKey?.toString() ?? null, handlePlotClick)
+      setSceneCallbacks(playerId, handlePlotClick)
 
       gameRef.current = new Phaser.Game({
         type:            Phaser.AUTO,
@@ -306,11 +319,11 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
     return () => window.removeEventListener('farm:openPlot', handler)
   }, [handlePlotClick])
 
-  // Sync wallet into running scene
+  // Sync wallet into running scene (use guestId when no wallet connected)
   useEffect(() => {
     const scene = gameRef.current?.scene.getScene('WorldScene') as WorldScene | null
-    scene?.setWallet(publicKey?.toString() ?? null)
-  }, [publicKey])
+    scene?.setWallet(playerId)
+  }, [playerId])
 
   // Disable Phaser canvas clicks while modal is open
   useEffect(() => {
@@ -661,7 +674,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {!selectedPlot && <ActivityFeed />}
 
       {/* ── Live chat ─────────────────────────────────────── */}
-      <LiveChat wallet={publicKey?.toString() ?? null} />
+      <LiveChat wallet={playerId} />
 
       {/* ── Alliance + Trades buttons (bottom-right stack) ── */}
       <button
