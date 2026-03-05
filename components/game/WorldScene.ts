@@ -801,6 +801,7 @@ export class WorldScene extends Phaser.Scene {
             const def = CHARACTER_DEFS.find(c => c.id === p.char_id) ?? CHARACTER_DEFS[0]
             const spr = this.add.sprite(p.x, p.y, def.id, def.downStart)
             spr.setScale(def.scale).setDepth(9).setAlpha(0.85)
+            if (this.anims.exists(`${def.id}-down`)) { spr.play(`${def.id}-down`); spr.stop() }
             const short = `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`
             const tag   = this.add.text(p.x, p.y - 26, short, {
               fontSize: '8px', fontFamily: '"Press Start 2P"',

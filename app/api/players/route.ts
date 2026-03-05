@@ -7,14 +7,14 @@ export async function GET(req: Request) {
   const exclude = searchParams.get('exclude') ?? ''
 
   const db = supabaseAdmin()
-  const since = new Date(Date.now() - 6000).toISOString()
+  const since = new Date(Date.now() - 10000).toISOString()
 
-  const query = db
+  let query = db
     .from('player_positions')
     .select('wallet, x, y, col, row, char_id, updated_at')
     .gte('updated_at', since)
 
-  if (exclude) query.neq('wallet', exclude)
+  if (exclude) query = query.neq('wallet', exclude)
 
   const { data } = await query
   return NextResponse.json(data ?? [])
