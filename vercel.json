@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/auto-harvest?secret=REPLACE_WITH_YOUR_CRON_SECRET",
-      "schedule": "* * * * *"
+      "path": "/api/cron/auto-harvest?secret=fw-cron-x9k2p7m4q1",
+      "schedule": "*/5 * * * *"
     }
   ]
 }
