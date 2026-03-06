@@ -1,43 +1,38 @@
 'use client'
 
-import { usePrivy } from '@privy-io/react-auth'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { useWalletModal } from '@solana/wallet-adapter-react-ui'
 import { useEffect, useState } from 'react'
-import { useGameWallet } from '@/hooks/useGameWallet'
 import { getTokenBalance, formatTokenAmount } from '@/lib/solana'
 import { GAME_TOKEN } from '@/config/token'
 
 export default function ConnectButton() {
-  const { ready, authenticated, login, logout } = usePrivy()
-  const { publicKey, connected } = useGameWallet()
+  const { publicKey, disconnect, connected } = useWallet()
+  const { setVisible } = useWalletModal()
   const [balance, setBalance] = useState<number | null>(null)
 
   useEffect(() => {
     if (!publicKey) { setBalance(null); return }
-    const addr = publicKey.toString()
-    getTokenBalance(addr).then(setBalance)
-    const id = setInterval(() => getTokenBalance(addr).then(setBalance), 30_000)
-    return () => clearInterval(id)
+    getTokenBalance(publicKey.toString()).then(setBalance)
+    const interval = setInterval(() => {
+      getTokenBalance(publicKey.toString()).then(setBalance)
+    }, 30000)
+    return () => clearInterval(interval)
   }, [publicKey])
 
-  if (!ready) return null
-
-  if (!authenticated || !connected || !publicKey) {
+  if (!connected || !publicKey) {
     return (
       <button
-        onClick={login}
+        onClick={() => setVisible(true)}
         className="pixel-btn px-5 py-2"
-        style={{
-          background: '#2d5a1b', borderColor: '#1a3a0d', color: '#ccffcc',
-          boxShadow: 'inset 1px 1px 0 #3d8a2b, inset -1px -1px 0 #1a2a10, 3px 3px 0 #0a1a05',
-        }}
+        style={{ background: '#2d5a1b', borderColor: '#1a3a0d', color: '#ccffcc', boxShadow: 'inset 1px 1px 0 #3d8a2b, inset -1px -1px 0 #1a2a10, 3px 3px 0 #0a1a05' }}
       >
-        Connect
+        Connect Wallet
       </button>
     )
   }
 
-  const addr  = publicKey.toString()
-  const short = `${addr.slice(0, 4)}...${addr.slice(-4)}`
+  const short = `${publicKey.toString().slice(0, 4)}...${publicKey.toString().slice(-4)}`
 
   return (
     <div className="flex items-center gap-3">
@@ -45,7 +40,7 @@ export default function ConnectButton() {
         {balance !== null ? `${formatTokenAmount(balance)} ${GAME_TOKEN.symbol}` : '...'}
       </div>
       <button
-        onClick={() => logout()}
+        onClick={() => disconnect()}
         className="pixel-btn px-4 py-2"
         style={{ fontSize: 12 }}
       >
