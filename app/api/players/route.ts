@@ -1,33 +1,46 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { Pool } from 'pg'
 
-// GET — active players updated in the last 10 seconds (via RPC, bypasses schema cache)
+// Direct PostgreSQL connection — bypasses PostgREST schema cache entirely
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+
+// GET — active players updated in the last 10 seconds
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const exclude = searchParams.get('exclude') ?? ''
 
-  const db = supabaseAdmin()
-  const { data, error } = await db.rpc('get_active_players', { exclude_wallet: exclude })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data ?? [])
+  try {
+    const { rows } = await pool.query(
+      `SELECT wallet, x, y, col, "row", char_id, pos_updated_at AS updated_at
+       FROM players
+       WHERE x IS NOT NULL
+         AND pos_updated_at > NOW() - INTERVAL '10 seconds'
+         AND ($1 = '' OR wallet != $1)`,
+      [exclude],
+    )
+    return NextResponse.json(rows)
+  } catch (e: unknown) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }
 
-// POST — upsert own position (via RPC, bypasses schema cache)
+// POST — upsert own position
 export async function POST(req: Request) {
   const { wallet, x, y, col, row, char_id } = await req.json()
   if (!wallet || x == null || y == null) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  const db = supabaseAdmin()
-  const { error } = await db.rpc('upsert_player_position', {
-    p_wallet:  wallet,
-    p_x:       x,
-    p_y:       y,
-    p_col:     col  ?? 0,
-    p_row:     row  ?? 0,
-    p_char_id: char_id ?? 'player',
-  })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  try {
+    await pool.query(
+      `INSERT INTO players (wallet, balance, x, y, col, "row", char_id, pos_updated_at)
+       VALUES ($1, 0, $2, $3, $4, $5, $6, NOW())
+       ON CONFLICT (wallet) DO UPDATE SET
+         x = $2, y = $3, col = $4, "row" = $5, char_id = $6, pos_updated_at = NOW()`,
+      [wallet, x, y, col ?? 0, row ?? 0, char_id ?? 'player'],
+    )
+    return NextResponse.json({ ok: true })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }
