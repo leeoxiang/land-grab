@@ -11,12 +11,15 @@ export default function PrivyWalletProvider({ children }: { children: React.Reac
       config={{
         loginMethods: ['email', 'wallet', 'google', 'discord', 'twitter'],
         appearance: {
-          theme:       'dark',
-          accentColor: '#2d5a1b',
-          logo:        '/favicon.ico',
+          theme:           'dark',
+          accentColor:     '#2d5a1b',
+          logo:            '/favicon.ico',
+          walletChainType: 'solana-only',
+          walletList:      ['phantom'],
         },
         embeddedWallets: {
-          createOnLogin: 'users-without-wallets',
+          solana:   { createOnLogin: 'users-without-wallets' },
+          ethereum: { createOnLogin: 'off' },
         },
       } as Parameters<typeof PrivyProvider>[0]['config']}
     >
