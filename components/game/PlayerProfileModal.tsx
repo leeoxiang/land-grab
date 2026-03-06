@@ -364,9 +364,9 @@ function PlotCard({ plot, num }: { plot: PlotData; num: number }) {
   const label = TIER_LABEL[plot.tier] ?? '?'
   const name  = TIER_NAME[plot.tier]  ?? plot.tier
 
-  const cropEmojis   = plot.crops.slice(0, 3).map(c => ITEM_EMOJI[c.crop_type]   ?? '🌱').join(' ')
-  const animalEmojis = plot.animals.slice(0, 2).map(a => ITEM_EMOJI[a.animal_type] ?? '🐾').join(' ')
-  const hasContent   = cropEmojis || animalEmojis
+  const cropEmojis = plot.crops.slice(0, 3).map(c => ITEM_EMOJI[c.crop_type] ?? '🌱').join(' ')
+  const animalTypes = plot.animals.slice(0, 3).map(a => a.animal_type)
+  const hasContent  = cropEmojis || animalTypes.length > 0
 
   return (
     <div style={{
@@ -398,13 +398,27 @@ function PlotCard({ plot, num }: { plot: PlotData; num: number }) {
       </div>
 
       {/* Content preview */}
-      <div style={{ fontSize: 14, flexShrink: 0, opacity: 0.9 }}>
-        {hasContent
-          ? <>{cropEmojis} {animalEmojis}</>
-          : <span style={{ fontSize: 8, color: '#2a1a10', fontFamily: 'system-ui' }}>empty</span>
-        }
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+        {cropEmojis && <span style={{ fontSize: 13 }}>{cropEmojis}</span>}
+        {animalTypes.map(t => <AnimalSprite key={t} type={t} />)}
+        {!hasContent && <span style={{ fontSize: 8, color: '#2a1a10', fontFamily: 'system-ui' }}>empty</span>}
       </div>
     </div>
+  )
+}
+
+// Renders the first frame of an animal spritesheet (32×32 from top-left of 64×64 sheet)
+function AnimalSprite({ type }: { type: string }) {
+  const file = `/assets/${type}.png`
+  return (
+    <div style={{
+      width: 20, height: 20,
+      backgroundImage: `url('${file}')`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: '0px 0px',
+      backgroundSize: '40px 40px', // 64×64 scaled to 40×40 so frame is 20×20
+      imageRendering: 'pixelated',
+    }} title={type} />
   )
 }
 
