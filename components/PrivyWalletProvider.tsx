@@ -1,11 +1,8 @@
 'use client'
 
 import { PrivyProvider } from '@privy-io/react-auth'
-import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana'
 import { ConnectionProvider } from '@solana/wallet-adapter-react'
 import { SOLANA_RPC } from '@/config/token'
-
-const solanaConnectors = toSolanaWalletConnectors({ shouldAutoConnect: true })
 
 export default function PrivyWalletProvider({ children }: { children: React.ReactNode }) {
   return (
@@ -19,14 +16,10 @@ export default function PrivyWalletProvider({ children }: { children: React.Reac
           logo:        '/favicon.ico',
         },
         embeddedWallets: {
-          solana: { createOnLogin: 'users-without-wallets' },
+          createOnLogin: 'users-without-wallets',
         },
-        externalWallets: {
-          solana: { connectors: solanaConnectors },
-        },
-      }}
+      } as Parameters<typeof PrivyProvider>[0]['config']}
     >
-      {/* Keep ConnectionProvider for RPC access (token balance checks etc.) */}
       <ConnectionProvider endpoint={SOLANA_RPC}>
         {children}
       </ConnectionProvider>

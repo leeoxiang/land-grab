@@ -99,7 +99,7 @@ export default function PlayerProfileModal({ wallet, charId, onClose }: Props) {
 
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 8, color: '#3a1f0a', marginBottom: 6 }}>
-                {def.name}
+                {def.label}
               </div>
               {isGuest ? (
                 <div style={{ fontSize: 10, color: '#8b5a2b', fontFamily: 'system-ui' }}>Guest player</div>
