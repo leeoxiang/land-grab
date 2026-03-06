@@ -9,10 +9,19 @@ interface ChatMsg {
   created_at: string
 }
 
-function shortWallet(w: string) {
-  if (!w || w.length < 8) return w
-  if (w.startsWith('guest_')) return 'Guest'
-  return `${w.slice(0, 4)}..${w.slice(-3)}`
+function WalletLink({ w, isYou }: { w: string; isYou: boolean }) {
+  if (isYou) return <span style={{ fontWeight: 'bold' }}>You</span>
+  if (!w || w.startsWith('guest_')) return <span>Guest</span>
+  const short = `${w.slice(0, 4)}..${w.slice(-3)}`
+  return (
+    <a
+      href={`https://solscan.io/account/${w}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: 'inherit', textDecoration: 'underline', cursor: 'pointer' }}
+      onClick={e => e.stopPropagation()}
+    >{short}</a>
+  )
 }
 
 function timeAgo(iso: string) {
@@ -142,7 +151,7 @@ export default function LiveChat({ wallet }: Props) {
                     color:      m.wallet === wallet ? '#5c3317' : '#8b5a2b',
                     fontWeight: m.wallet === wallet ? 'bold' : 'normal',
                   }}>
-                    {m.wallet === wallet ? 'You' : shortWallet(m.wallet)}
+                    <WalletLink w={m.wallet} isYou={m.wallet === wallet} />
                   </span>
                   <span style={{ fontSize: 8, color: '#a07840', fontFamily: 'system-ui' }}>
                     {timeAgo(m.created_at)}

@@ -17,6 +17,7 @@ import TradeModal        from './TradeModal'
 import TribeModal        from './TribeModal'
 import AchievementToast  from './AchievementToast'
 import LiveChat          from './LiveChat'
+import PlayerProfileModal from './PlayerProfileModal'
 import { WORLD_COLS, WORLD_ROWS, CROPS, ANIMALS, FISH, ACHIEVEMENT_DEFS, GOLDEN_HOUR_INTERVAL_MS, GOLDEN_HOUR_DURATION_MS } from '@/config/game'
 import { getSavedCharacter, CHARACTER_DEFS } from '@/config/characters'
 
@@ -85,6 +86,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   )
   const [inventory,          setInventory]          = useState<InventoryRow[]>([])
   const [ownedPlots,         setOwnedPlots]         = useState<PlotFull[]>([])
+  const [clickedPlayer,      setClickedPlayer]      = useState<{ wallet: string; charId: string } | null>(null)
 
   // Derive focused plot object from col/row
   const focusedPlot = plots.find(p => p.col === currentPlot.col && p.row === currentPlot.row) ?? null
@@ -348,6 +350,16 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
     window.addEventListener('farm:openPlot', handler)
     return () => window.removeEventListener('farm:openPlot', handler)
   }, [handlePlotClick])
+
+  // Listen for clicks on other player sprites (fired from WorldScene)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { wallet, charId } = (e as CustomEvent).detail ?? {}
+      if (wallet) setClickedPlayer({ wallet, charId: charId ?? 'player' })
+    }
+    window.addEventListener('farm:playerClick', handler)
+    return () => window.removeEventListener('farm:playerClick', handler)
+  }, [])
 
   // Sync wallet into running scene (use guestId when no wallet connected)
   useEffect(() => {
@@ -987,6 +999,15 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
       {/* ── Mobile D-pad ─────────────────────────────────── */}
       {isTouchDevice && !selectedPlot && (
         <MobileDPad />
+      )}
+
+      {/* ── Other player profile modal ───────────────────── */}
+      {clickedPlayer && (
+        <PlayerProfileModal
+          wallet={clickedPlayer.wallet}
+          charId={clickedPlayer.charId}
+          onClose={() => setClickedPlayer(null)}
+        />
       )}
 
       {/* ── Plot modal ────────────────────────────────────── */}
