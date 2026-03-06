@@ -1,51 +1,49 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { pool } from '@/lib/db'
 import { CROPS, PLOT_TIERS } from '@/config/game'
 import type { CropType, PlotTier } from '@/config/game'
 import { logEvent } from '@/lib/logEvent'
 
 export async function POST(req: Request) {
-  const { plotId, slot, cropType, wallet } = await req.json()
-  if (!plotId || slot === undefined || !cropType || !wallet) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+  try {
+    const { plotId, slot, cropType, wallet } = await req.json()
+    if (!plotId || slot === undefined || !cropType || !wallet) {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+    }
+
+    const cropCfg = CROPS[cropType as CropType]
+    if (!cropCfg) return NextResponse.json({ error: 'Invalid crop type' }, { status: 400 })
+
+    // Verify ownership
+    const { rows: plotRows } = await pool.query(`SELECT owner_wallet, tier FROM plots WHERE id = $1`, [plotId])
+    if (!plotRows.length || plotRows[0].owner_wallet !== wallet) {
+      return NextResponse.json({ error: 'Not your plot' }, { status: 403 })
+    }
+    const plot = plotRows[0]
+
+    // Check slot is free
+    const { rows: slotRows } = await pool.query(
+      `SELECT id FROM crops WHERE plot_id = $1 AND slot = $2 AND harvested = false LIMIT 1`,
+      [plotId, slot],
+    )
+    if (slotRows.length) return NextResponse.json({ error: 'Slot occupied' }, { status: 400 })
+
+    const tierCfg   = PLOT_TIERS[plot.tier as PlotTier]
+    const growMs    = cropCfg.growMs / tierCfg.speed
+    const plantedAt = new Date()
+    const harvestAt = new Date(plantedAt.getTime() + growMs)
+
+    const { rows: inserted } = await pool.query(
+      `INSERT INTO crops (plot_id, slot, crop_type, planted_at, harvest_at, harvested)
+       VALUES ($1, $2, $3, $4, $5, false) RETURNING *`,
+      [plotId, slot, cropType, plantedAt.toISOString(), harvestAt.toISOString()],
+    )
+    const crop = inserted[0]
+
+    try { await logEvent('plant_crop', plotId, wallet, { crop_type: cropType }) } catch { /* ignore */ }
+
+    return NextResponse.json({ crop })
+  } catch (e: unknown) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
   }
-
-  const cropCfg = CROPS[cropType as CropType]
-  if (!cropCfg) return NextResponse.json({ error: 'Invalid crop type' }, { status: 400 })
-
-  const db = supabaseAdmin()
-
-  // Verify ownership
-  const { data: plot } = await db.from('plots').select('*').eq('id', plotId).single()
-  if (!plot || plot.owner_wallet !== wallet) return NextResponse.json({ error: 'Not your plot' }, { status: 403 })
-
-  // Check slot is free
-  const { data: existing } = await db.from('crops')
-    .select('id').eq('plot_id', plotId).eq('slot', slot).eq('harvested', false).single()
-  if (existing) return NextResponse.json({ error: 'Slot occupied' }, { status: 400 })
-
-  // Apply plot tier speed multiplier
-  const tierCfg = PLOT_TIERS[plot.tier as PlotTier]
-  const growMs = cropCfg.growMs / tierCfg.speed
-
-  const plantedAt  = new Date()
-  const harvestAt  = new Date(plantedAt.getTime() + growMs)
-
-  // Deduct seed cost from player inventory / balance (simplified: tracked in DB)
-  // Full on-chain token deduction can be wired in later
-
-  const { data: crop, error } = await db.from('crops').insert({
-    plot_id:    plotId,
-    slot,
-    crop_type:  cropType,
-    planted_at: plantedAt.toISOString(),
-    harvest_at: harvestAt.toISOString(),
-    harvested:  false,
-  }).select().single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  await logEvent('plant_crop', plotId, wallet, { crop_type: cropType })
-
-  return NextResponse.json({ crop })
 }

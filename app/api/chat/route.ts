@@ -3,7 +3,23 @@ import { Pool } from 'pg'
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
 
+// Auto-create table on cold start — no manual SQL needed
+let tableReady = false
+async function ensureTable() {
+  if (tableReady) return
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id         bigserial PRIMARY KEY,
+      wallet     text NOT NULL,
+      message    text NOT NULL,
+      created_at timestamptz DEFAULT now()
+    )
+  `)
+  tableReady = true
+}
+
 export async function GET() {
+  await ensureTable()
   try {
     const { rows } = await pool.query(
       `SELECT id, wallet, message, created_at
@@ -18,6 +34,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  await ensureTable()
   const { wallet, message } = await req.json()
   if (!wallet || !message?.trim()) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })

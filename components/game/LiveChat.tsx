@@ -32,6 +32,7 @@ export default function LiveChat({ wallet }: Props) {
   const [sending,   setSending]   = useState(false)
   const [collapsed, setCollapsed] = useState(true)
   const [error,     setError]     = useState<string | null>(null)
+  const failCount = useRef(0)
   const [sendErr,   setSendErr]   = useState<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef  = useRef<HTMLInputElement>(null)
@@ -46,10 +47,16 @@ export default function LiveChat({ wallet }: Props) {
       try {
         const res  = await fetch('/api/chat')
         const data = await res.json()
-        if (!res.ok) { if (alive) setError(data.error ?? `HTTP ${res.status}`); return }
+        if (!res.ok) {
+          failCount.current += 1
+          if (alive && failCount.current >= 2) setError(data.error ?? `HTTP ${res.status}`)
+          return
+        }
+        failCount.current = 0
         if (alive) { setMsgs(Array.isArray(data) ? data : []); setError(null) }
       } catch (e) {
-        if (alive) setError(String(e))
+        failCount.current += 1
+        if (alive && failCount.current >= 2) setError(String(e))
       }
     }
     load()
@@ -144,7 +151,7 @@ export default function LiveChat({ wallet }: Props) {
               background: '#3a0808', border: '3px solid #aa2222', borderTop: 'none', borderBottom: 'none',
               padding: '5px 8px', fontSize: 8, color: '#ff8888', fontFamily: 'system-ui',
             }}>
-              ⚠ Chat unavailable — run CREATE TABLE chat_messages in Supabase SQL editor
+              ⚠ Chat unavailable — {error}
             </div>
           )}
 
