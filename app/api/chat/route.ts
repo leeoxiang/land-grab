@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { Pool } from 'pg'
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
 
 export async function GET() {
-  const db = supabaseAdmin()
-  const { data } = await db
-    .from('chat_messages')
-    .select('id, wallet, message, created_at')
-    .order('created_at', { ascending: false })
-    .limit(60)
-  return NextResponse.json(data ?? [])
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, wallet, message, created_at
+       FROM chat_messages
+       ORDER BY created_at ASC
+       LIMIT 80`,
+    )
+    return NextResponse.json(rows)
+  } catch (e: unknown) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
+  }
 }
 
 export async function POST(req: Request) {
@@ -17,27 +23,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
   const text = String(message).trim().slice(0, 120)
-  if (text.length < 1) return NextResponse.json({ error: 'Empty message' }, { status: 400 })
 
-  const db = supabaseAdmin()
+  try {
+    // Rate-limit: max 1 message per 3 seconds per wallet
+    const { rows: recent } = await pool.query(
+      `SELECT id FROM chat_messages WHERE wallet = $1 AND created_at > NOW() - INTERVAL '3 seconds' LIMIT 1`,
+      [wallet],
+    )
+    if (recent.length > 0) {
+      return NextResponse.json({ error: 'Slow down' }, { status: 429 })
+    }
 
-  // Rate-limit: max 1 message per 3 seconds per wallet
-  const since = new Date(Date.now() - 3000).toISOString()
-  const { count } = await db
-    .from('chat_messages')
-    .select('*', { count: 'exact', head: true })
-    .eq('wallet', wallet)
-    .gte('created_at', since)
-  if ((count ?? 0) > 0) {
-    return NextResponse.json({ error: 'Slow down' }, { status: 429 })
+    const { rows } = await pool.query(
+      `INSERT INTO chat_messages (wallet, message) VALUES ($1, $2)
+       RETURNING id, wallet, message, created_at`,
+      [wallet, text],
+    )
+    return NextResponse.json(rows[0])
+  } catch (e: unknown) {
+    return NextResponse.json({ error: String(e) }, { status: 500 })
   }
-
-  const { data, error } = await db
-    .from('chat_messages')
-    .insert({ wallet, message: text })
-    .select('id, wallet, message, created_at')
-    .single()
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
 }
