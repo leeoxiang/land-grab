@@ -19,8 +19,21 @@ export async function GET(req: Request) {
       [exclude],
     )
     return NextResponse.json(rows)
-  } catch (e: unknown) {
-    return NextResponse.json({ error: String(e) }, { status: 500 })
+  } catch {
+    // Fallback: player_name column may not exist yet — query without it
+    try {
+      const { rows } = await pool.query(
+        `SELECT wallet, x, y, col, "row", char_id, pos_updated_at AS updated_at
+         FROM players
+         WHERE x IS NOT NULL
+           AND pos_updated_at > NOW() - INTERVAL '10 seconds'
+           AND ($1 = '' OR wallet != $1)`,
+        [exclude],
+      )
+      return NextResponse.json(rows)
+    } catch (e2: unknown) {
+      return NextResponse.json({ error: String(e2) }, { status: 500 })
+    }
   }
 }
 
@@ -40,7 +53,19 @@ export async function POST(req: Request) {
       [wallet, x, y, col ?? 0, row ?? 0, char_id ?? 'player', player_name ?? null],
     )
     return NextResponse.json({ ok: true })
-  } catch (e: unknown) {
-    return NextResponse.json({ error: String(e) }, { status: 500 })
+  } catch {
+    // Fallback: player_name column may not exist yet — upsert without it
+    try {
+      await pool.query(
+        `INSERT INTO players (wallet, balance, x, y, col, "row", char_id, pos_updated_at)
+         VALUES ($1, 0, $2, $3, $4, $5, $6, NOW())
+         ON CONFLICT (wallet) DO UPDATE SET
+           x = $2, y = $3, col = $4, "row" = $5, char_id = $6, pos_updated_at = NOW()`,
+        [wallet, x, y, col ?? 0, row ?? 0, char_id ?? 'player'],
+      )
+      return NextResponse.json({ ok: true })
+    } catch (e2: unknown) {
+      return NextResponse.json({ error: String(e2) }, { status: 500 })
+    }
   }
 }
