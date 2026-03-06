@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet as useWallet } from '@/hooks/useGameWallet'
 import ConnectButton from '@/components/ConnectButton'
 import Marketplace from '@/components/Marketplace'
 import MyPlotsPanel from '@/components/MyPlotsPanel'

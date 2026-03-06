@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet } from '@/hooks/useGameWallet'
 import type { Plot, PlotFull } from '@/types'
 import { WorldScene, setSceneCallbacks } from './WorldScene'
 import PlotModal        from './PlotModal'
@@ -43,7 +43,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   const gameRef      = useRef<import('phaser').Game | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const starterChecked = useRef<string | null>(null)
-  const { publicKey } = useWallet()
+  const { publicKey } = useGameWallet()
 
   // Stable guest ID — created once, stored in localStorage, used when wallet not connected
   const [guestId] = useState<string>(() => {

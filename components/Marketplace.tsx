@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet as useWallet } from '@/hooks/useGameWallet'
 import type { MarketOrder } from '@/types'
 import { CROPS, ANIMALS } from '@/config/game'
 

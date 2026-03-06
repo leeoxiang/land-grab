@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet as useWallet } from '@/hooks/useGameWallet'
 import { useUsdcTransfer } from '@/lib/useUsdcTransfer'
 import type { Plot, PlotFull, Tree } from '@/types'
 import { PLOT_TIERS, CROPS, ANIMALS, TREES, FARMERS, FISH, FISH_COOLDOWN_MS, GOBLINS, STEAL_CONFIG, FARMER_HARVEST_BASE_MS, UPGRADES, MAX_UPGRADE_LEVEL, RARITY, ITEM_RARITY } from '@/config/game'

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import SolanaWalletProvider from '@/components/WalletProvider'
+import PrivyWalletProvider from '@/components/PrivyWalletProvider'
 
 export const metadata: Metadata = {
   title: 'Land Grab — Solana Farming Game',
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=block" rel="stylesheet" />
       </head>
       <body className="bg-gray-950">
-        <SolanaWalletProvider>{children}</SolanaWalletProvider>
+        <PrivyWalletProvider>{children}</PrivyWalletProvider>
       </body>
     </html>
   )

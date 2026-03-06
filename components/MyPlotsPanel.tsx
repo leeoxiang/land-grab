@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 
 // globalThis.__fw is declared in WorldScene.ts; reference it via window cast to avoid re-declaration
 
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet as useWallet } from '@/hooks/useGameWallet'
 import { PLOT_TIERS, CROPS, ANIMALS, FARMERS } from '@/config/game'
 import type { PlotFull } from '@/types'
 import PixelIcon from '@/components/ui/PixelIcon'

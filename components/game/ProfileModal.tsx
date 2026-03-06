@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import { useWallet } from '@solana/wallet-adapter-react'
+import { useGameWallet as useWallet } from '@/hooks/useGameWallet'
 import { CHARACTER_DEFS, getPlayerName, savePlayerName } from '@/config/characters'
 import { CROPS, ANIMALS, FISH } from '@/config/game'
 import type { PlotFull } from '@/types'
