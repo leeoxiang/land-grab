@@ -86,7 +86,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   )
   const [inventory,          setInventory]          = useState<InventoryRow[]>([])
   const [ownedPlots,         setOwnedPlots]         = useState<PlotFull[]>([])
-  const [clickedPlayer,      setClickedPlayer]      = useState<{ wallet: string; charId: string } | null>(null)
+  const [clickedPlayer,      setClickedPlayer]      = useState<{ wallet: string; charId: string; playerName?: string } | null>(null)
 
   // Derive focused plot object from col/row
   const focusedPlot = plots.find(p => p.col === currentPlot.col && p.row === currentPlot.row) ?? null
@@ -354,8 +354,8 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
   // Listen for clicks on other player sprites (fired from WorldScene)
   useEffect(() => {
     const handler = (e: Event) => {
-      const { wallet, charId } = (e as CustomEvent).detail ?? {}
-      if (wallet) setClickedPlayer({ wallet, charId: charId ?? 'player' })
+      const { wallet, charId, playerName } = (e as CustomEvent).detail ?? {}
+      if (wallet) setClickedPlayer({ wallet, charId: charId ?? 'player', playerName: playerName ?? '' })
     }
     window.addEventListener('farm:playerClick', handler)
     return () => window.removeEventListener('farm:playerClick', handler)
@@ -1006,6 +1006,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
         <PlayerProfileModal
           wallet={clickedPlayer.wallet}
           charId={clickedPlayer.charId}
+          playerName={clickedPlayer.playerName}
           onClose={() => setClickedPlayer(null)}
         />
       )}

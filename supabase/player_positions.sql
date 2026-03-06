@@ -11,3 +11,6 @@ CREATE TABLE IF NOT EXISTS player_positions (
 
 -- Tree slot positions (add to existing trees table)
 ALTER TABLE trees ADD COLUMN IF NOT EXISTS slot int NOT NULL DEFAULT 0;
+
+-- Player display name (synced from localStorage on each position push)
+ALTER TABLE players ADD COLUMN IF NOT EXISTS player_name text;

@@ -770,28 +770,30 @@ export class WorldScene extends Phaser.Scene {
   // ─── Real-time multiplayer ─────────────────────────────────────────────────
 
   /** Called by React (GameCanvas) to get this player's position payload for the API. */
-  getOwnPositionData(): { wallet: string; x: number; y: number; col: number; row: number; char_id: string } | null {
+  getOwnPositionData(): { wallet: string; x: number; y: number; col: number; row: number; char_id: string; player_name: string } | null {
     if (!this.player || !this.walletAddress) return null
     return {
-      wallet:  this.walletAddress,
-      x:       Math.round(this.player.x),
-      y:       Math.round(this.player.y),
-      col:     this.currentCol,
-      row:     this.currentRow,
-      char_id: this.currentCharId,
+      wallet:      this.walletAddress,
+      x:           Math.round(this.player.x),
+      y:           Math.round(this.player.y),
+      col:         this.currentCol,
+      row:         this.currentRow,
+      char_id:     this.currentCharId,
+      player_name: getPlayerName(),
     }
   }
 
   /** Called by React (GameCanvas) with the latest other-player positions fetched from the API. */
-  public updateOtherPlayers(players: Array<{ wallet: string; x: number; y: number; char_id: string }>) {
+  public updateOtherPlayers(players: Array<{ wallet: string; x: number; y: number; char_id: string; player_name?: string }>) {
     if (!this.scene?.isActive?.()) return
     const seen = new Set<string>()
     for (const p of players) {
       seen.add(p.wallet)
+      const displayName = p.player_name?.trim() || (p.wallet.startsWith('guest_') ? 'Guest' : `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`)
       const existing = this.otherPlayers.get(p.wallet)
       if (existing) {
         this.tweens.add({ targets: existing.sprite, x: p.x, y: p.y, duration: 1800, ease: 'Linear' })
-        existing.nameTag.setPosition(p.x, p.y - 26)
+        existing.nameTag.setPosition(p.x, p.y - 26).setText(displayName)
       } else {
         const def = CHARACTER_DEFS.find(c => c.id === p.char_id) ?? CHARACTER_DEFS[0]
         const spr = this.add.sprite(p.x, p.y, def.id, def.downStart)
@@ -801,11 +803,10 @@ export class WorldScene extends Phaser.Scene {
         spr.setInteractive({ useHandCursor: true })
         spr.on('pointerdown', () => {
           window.dispatchEvent(new CustomEvent('farm:playerClick', {
-            detail: { wallet: p.wallet, charId: p.char_id },
+            detail: { wallet: p.wallet, charId: p.char_id, playerName: p.player_name ?? '' },
           }))
         })
-        const short = p.wallet.startsWith('guest_') ? 'Guest' : `${p.wallet.slice(0, 4)}..${p.wallet.slice(-3)}`
-        const tag   = this.add.text(p.x, p.y - 26, short, {
+        const tag = this.add.text(p.x, p.y - 26, displayName, {
           fontSize: '8px', fontFamily: '"Press Start 2P"',
           color: '#ff8844', backgroundColor: '#00000088',
           padding: { x: 3, y: 2 },

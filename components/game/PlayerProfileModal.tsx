@@ -6,6 +6,7 @@ import { CHARACTER_DEFS } from '@/config/characters'
 interface Props {
   wallet: string
   charId: string
+  playerName?: string
   onClose: () => void
 }
 
@@ -58,7 +59,7 @@ function timeAgo(iso: string) {
   return 'today'
 }
 
-export default function PlayerProfileModal({ wallet, charId, onClose }: Props) {
+export default function PlayerProfileModal({ wallet, charId, playerName, onClose }: Props) {
   const [plots,     setPlots]     = useState<PlotData[]>([])
   const [inventory, setInventory] = useState<InventoryItem[]>([])
   const [tribeData, setTribeData] = useState<TribeData | null>(null)
@@ -140,9 +141,16 @@ export default function PlayerProfileModal({ wallet, charId, onClose }: Props) {
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: '#3a1f0a', marginBottom: 5 }}>
-                {def.label}
+              {/* Player's set name (or fallback to character class) */}
+              <div style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: '#3a1f0a', marginBottom: 3 }}>
+                {playerName?.trim() || def.label}
               </div>
+              {/* Character class label shown when a custom name is set */}
+              {playerName?.trim() && (
+                <div style={{ fontFamily: 'system-ui', fontSize: 9, color: '#8b5a2b', marginBottom: 4 }}>
+                  {def.label}
+                </div>
+              )}
               {isGuest ? (
                 <div style={{ fontSize: 11, color: '#8b5a2b', fontFamily: 'system-ui' }}>Guest player</div>
               ) : (
