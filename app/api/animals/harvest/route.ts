@@ -20,7 +20,7 @@ export async function POST(req: Request) {
               p.owner_wallet, p.tier
        FROM animals a
        JOIN plots p ON p.id = a.plot_id
-       WHERE a.id = $1`,
+       WHERE a.id = $1::uuid`,
       [animalId],
     )
     if (!rows.length) return NextResponse.json({ error: 'Animal not found' }, { status: 404 })

@@ -15,7 +15,7 @@ export async function POST(req: Request) {
               p.owner_wallet
        FROM trees t
        JOIN plots p ON p.id = t.plot_id
-       WHERE t.id = $1`,
+       WHERE t.id = $1::uuid`,
       [treeId],
     )
     if (!rows.length) return NextResponse.json({ error: 'Tree not found' }, { status: 404 })

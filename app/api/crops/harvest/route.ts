@@ -20,7 +20,7 @@ export async function POST(req: Request) {
               p.owner_wallet, p.tier
        FROM crops c
        JOIN plots p ON p.id = c.plot_id
-       WHERE c.id = $1`,
+       WHERE c.id = $1::uuid`,
       [cropId],
     )
     if (!rows.length) return NextResponse.json({ error: 'Crop not found' }, { status: 404 })
