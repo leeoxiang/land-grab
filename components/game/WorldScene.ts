@@ -15,12 +15,13 @@ declare global {
     removeTreeSprite: ((treeId: string) => void) | null
     refreshPlotTrees:   ((plotId: number) => void) | null
     refreshFarmers:     ((plotId: number, count: number) => void) | null
+    refreshAnimals:     ((plotId: number, animalType: string) => void) | null
   }
 }
 if (!globalThis.__fw) globalThis.__fw = {
   wallet: null, onClick: null, focusPlot: null,
   addTreeSprite: null, removeTreeSprite: null, refreshPlotTrees: null,
-  refreshFarmers: null,
+  refreshFarmers: null, refreshAnimals: null,
 }
 
 export function setSceneCallbacks(wallet: string | null, onClick: (p: Plot) => void) {
@@ -190,6 +191,10 @@ export class WorldScene extends Phaser.Scene {
         this.spawnFarmerNPCs(updated)
       }
     }
+    globalThis.__fw.refreshAnimals   = (plotId, animalType) => {
+      const plot = this.plots.find(p => p.id === plotId)
+      if (plot) this.spawnSingleAnimal(plot, animalType)
+    }
 
     this.cam    = this.cameras.main
     this.totalW = WORLD_COLS * STEP
@@ -212,9 +217,11 @@ export class WorldScene extends Phaser.Scene {
     // ── Draw all plots ────────────────────────────────────────────────────────
     this.plots.forEach(plot => this.drawPlot(plot))
 
-    // ── Spawn one wandering animal per owned plot ─────────────────────────────
+    // ── Spawn purchased animals per plot (from DB via animal_types) ──────────
     this.plots.forEach(plot => {
-      if (plot.owner_wallet) this.spawnAnimal(plot)
+      for (const animalType of (plot.animal_types ?? [])) {
+        this.spawnSingleAnimal(plot, animalType)
+      }
     })
 
     // ── Spawn hired farmer NPCs ────────────────────────────────────────────────
@@ -625,17 +632,27 @@ export class WorldScene extends Phaser.Scene {
     this.plotObjects.set(plot.id, container)
   }
 
-  private spawnAnimal(plot: Plot) {
-    const types  = ['chicken', 'cow', 'pig', 'sheep'] as const
-    const type   = types[Phaser.Math.Between(0, types.length - 1)]
+  private spawnSingleAnimal(plot: Plot, animalType: string) {
+    const WANDER_TYPES = ['chicken', 'cow', 'pig', 'sheep'] as const
     const plotX  = plot.col * STEP + PLOT_GAP
     const plotY  = plot.row * STEP + PLOT_GAP
     const margin = 80
     const x = plotX + margin + Math.random() * (PLOT_SIZE - margin * 2)
     const y = plotY + margin + Math.random() * (PLOT_SIZE - margin * 2)
 
+    if (animalType === 'beehive') {
+      // Beehive is a static image asset (loaded as image, not spritesheet) — place fixed, no wandering
+      this.add.image(x, y, 'beehive').setScale(0.8).setDepth(5)
+      return
+    }
+
+    // For all other types fall back to 'chicken' if texture isn't loaded
+    const texKey = WANDER_TYPES.includes(animalType as typeof WANDER_TYPES[number])
+      ? animalType
+      : 'chicken'
+
     // 64×64 single-frame sprite — scale 1.0 renders at 64 world units
-    const spr = this.add.sprite(x, y, type, 0)
+    const spr = this.add.sprite(x, y, texKey, 0)
     spr.setScale(1.0)
     spr.setDepth(5)
 

@@ -752,16 +752,50 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
 
 function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; detail: PlotFull | null; tier: string; now: number; onRefresh: () => Promise<void> }) {
   const { publicKey } = useWallet()
+  const { transferUsdc } = useUsdcTransfer()
+  const [buying, setBuying] = useState(false)
+  const [buyErr, setBuyErr] = useState<string | null>(null)
   const cfg = PLOT_TIERS[tier as keyof typeof PLOT_TIERS]
 
   const buyAnimal = async (animalType: string) => {
-    if (!publicKey) return
-    await fetch('/api/animals/buy', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ plotId, animalType, wallet: publicKey.toString() }),
-    })
-    await onRefresh()
+    if (!publicKey || buying) return
+    setBuying(true); setBuyErr(null)
+    try {
+      // 1. Preflight — validate server-side BEFORE opening Phantom
+      const pre = await fetch(
+        `/api/animals/buy?plotId=${plotId}&animalType=${animalType}&wallet=${publicKey.toString()}`
+      )
+      const preData = await pre.json()
+      if (!pre.ok) throw new Error(preData.error || 'Cannot buy animal')
+
+      // 2. Payment — only reached if preflight passed
+      let txSignature: string | undefined
+      try {
+        txSignature = await transferUsdc(preData.cost ?? 1)
+      } catch (txErr: unknown) {
+        const msg = txErr instanceof Error ? txErr.message : ''
+        if (!msg.includes('not configured')) throw txErr
+        // treasury not configured — dev bypass
+      }
+
+      // 3. Commit with verified signature
+      const res  = await fetch('/api/animals/buy', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plotId, animalType, wallet: publicKey.toString(), txSignature }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to buy animal')
+
+      // Spawn the new animal sprite immediately in Phaser
+      globalThis.__fw?.refreshAnimals?.(plotId, animalType)
+
+      await onRefresh()
+    } catch (e: unknown) {
+      setBuyErr(e instanceof Error ? e.message : 'Failed to buy animal')
+    } finally {
+      setBuying(false)
+    }
   }
 
   const harvestAnimal = async (animalId: string) => {
@@ -817,16 +851,18 @@ function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; 
         <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--ui-darkest)' }}>
           Buy Animal ({activeAnimals.length}/{cfg.animalSlots})
         </h3>
+        {buyErr && <p className="text-xs mb-2" style={{ color: '#ff6666' }}>{buyErr}</p>}
         {activeAnimals.length >= cfg.animalSlots ? (
           <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>Animal slots full</p>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(ANIMALS).map(([key, a]) => (
-              <button key={key} onClick={() => buyAnimal(key)}
-                className="pixel-inset text-left p-3 hover:brightness-110 transition-all">
+              <button key={key} onClick={() => buyAnimal(key)} disabled={buying}
+                className="pixel-inset text-left p-3 hover:brightness-110 transition-all"
+                style={{ opacity: buying ? 0.6 : 1 }}>
                 <div className="text-sm" style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}><PixelIcon icon="animal" size={12} style={{ marginRight: 4 }} />{a.name}</div>
                 <div className="text-xs" style={{ color: 'var(--ui-tan-light)' }}>
-                  {a.cost} · {a.produces} / {a.harvestMs >= 3600000 ? `${a.harvestMs / 3600000}h` : `${a.harvestMs / 60000}m`}
+                  {a.cost} USDC · {a.produces} / {a.harvestMs >= 3600000 ? `${a.harvestMs / 3600000}h` : `${a.harvestMs / 60000}m`}
                 </div>
               </button>
             ))}
@@ -1105,10 +1141,13 @@ function FishingTab({ plotId, plot, now }: { plotId: number; plot: Plot; now: nu
 
 function FarmersTab({ plotId, detail, onRefresh }: { plotId: number; detail: PlotFull | null; onRefresh: () => Promise<void> }) {
   const { publicKey } = useWallet()
+  const { transferUsdc } = useUsdcTransfer()
   const [now, setNow]                   = useState(Date.now())
   const [lastHarvestAt, setLastHarvestAt] = useState<number | null>(null)
   const [harvesting, setHarvesting]     = useState(false)
   const [lastResult, setLastResult]     = useState<{ crops: number; animals: number } | null>(null)
+  const [hiring, setHiring]             = useState(false)
+  const [hireErr, setHireErr]           = useState<string | null>(null)
 
   // Tick every 5 s to update progress bars
   useEffect(() => {
@@ -1169,18 +1208,43 @@ function FarmersTab({ plotId, detail, onRefresh }: { plotId: number; detail: Plo
   }, [ready])
 
   const hireFarmer = async (farmerType: string) => {
-    if (!publicKey) return
-    const res = await fetch('/api/farmers/hire', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ plotId, farmerType, wallet: publicKey.toString() }),
-    })
-    if (res.ok) {
+    if (!publicKey || hiring) return
+    setHiring(true); setHireErr(null)
+    try {
+      // 1. Preflight — validate server-side BEFORE opening Phantom
+      const pre = await fetch(
+        `/api/farmers/hire?plotId=${plotId}&farmerType=${farmerType}&wallet=${publicKey.toString()}`
+      )
+      const preData = await pre.json()
+      if (!pre.ok) throw new Error(preData.error || 'Cannot hire farmer')
+
+      // 2. Payment — only reached if preflight passed
+      let txSignature: string | undefined
+      try {
+        txSignature = await transferUsdc(preData.cost ?? 1)
+      } catch (txErr: unknown) {
+        const msg = txErr instanceof Error ? txErr.message : ''
+        if (!msg.includes('not configured')) throw txErr
+        // treasury not configured — dev bypass
+      }
+
+      // 3. Commit with verified signature
+      const res = await fetch('/api/farmers/hire', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plotId, farmerType, wallet: publicKey.toString(), txSignature }),
+      })
       const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to hire farmer')
+
       // Immediately spawn the farmer NPC sprite in Phaser
       globalThis.__fw?.refreshFarmers?.(plotId, data.farmerCount ?? 1)
+      await onRefresh()
+    } catch (e: unknown) {
+      setHireErr(e instanceof Error ? e.message : 'Failed to hire farmer')
+    } finally {
+      setHiring(false)
     }
-    await onRefresh()
   }
 
   const fmtMs = (ms: number) => {
@@ -1258,13 +1322,15 @@ function FarmersTab({ plotId, detail, onRefresh }: { plotId: number; detail: Plo
         <p className="text-xs mb-3" style={{ color: 'var(--ui-dark)' }}>
           Farmers auto-harvest crops and animals on your plot.
         </p>
+        {hireErr && <p className="text-xs mb-2" style={{ color: '#ff6666' }}>{hireErr}</p>}
         <div className="space-y-2">
           {Object.entries(FARMERS).map(([key, f]) => {
             const alreadyHired = farmers.some(hf => hf.farmer_type === key)
+            const disabled     = alreadyHired || hiring
             return (
-              <button key={key} onClick={() => !alreadyHired && hireFarmer(key)} disabled={alreadyHired}
+              <button key={key} onClick={() => !disabled && hireFarmer(key)} disabled={disabled}
                 className="pixel-inset w-full text-left p-3 hover:brightness-110 transition-all"
-                style={{ opacity: alreadyHired ? 0.5 : 1 }}>
+                style={{ opacity: disabled ? 0.5 : 1 }}>
                 <div className="flex justify-between">
                   <span style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}>
                     <PixelIcon icon="farmer" size={14} style={{ marginRight: 4 }} />

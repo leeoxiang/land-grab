@@ -4,14 +4,52 @@ import { ANIMALS, PLOT_TIERS } from '@/config/game'
 import type { AnimalType, PlotTier } from '@/config/game'
 import { logEvent } from '@/lib/logEvent'
 import { checkAchievements } from '@/lib/checkAchievements'
+import { verifyUsdcTx } from '@/lib/verifyTx'
+
+// GET /api/animals/buy?plotId=&animalType=&wallet= — preflight validation (no write)
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const plotId     = Number(searchParams.get('plotId'))
+  const animalType = searchParams.get('animalType') ?? ''
+  const wallet     = searchParams.get('wallet') ?? ''
+
+  if (!plotId || !animalType || !wallet)
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+
+  const animalCfg = ANIMALS[animalType as AnimalType]
+  if (!animalCfg) return NextResponse.json({ error: 'Invalid animal type' }, { status: 400 })
+
+  const db = supabaseAdmin()
+  const { data: plot } = await db.from('plots').select('owner_wallet, tier').eq('id', plotId).single()
+  if (!plot || plot.owner_wallet !== wallet)
+    return NextResponse.json({ error: 'Not your plot' }, { status: 403 })
+
+  const tierCfg = PLOT_TIERS[plot.tier as PlotTier]
+  const { count } = await db.from('animals').select('*', { count: 'exact', head: true }).eq('plot_id', plotId)
+  if ((count ?? 0) >= tierCfg.animalSlots)
+    return NextResponse.json({ error: 'Animal slots full' }, { status: 400 })
+
+  return NextResponse.json({ ok: true, cost: animalCfg.cost })
+}
 
 export async function POST(req: Request) {
   try {
-    const { plotId, animalType, wallet } = await req.json()
+    const { plotId, animalType, wallet, txSignature } = await req.json()
     if (!plotId || !animalType || !wallet) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
     const animalCfg = ANIMALS[animalType as AnimalType]
     if (!animalCfg) return NextResponse.json({ error: 'Invalid animal type' }, { status: 400 })
+
+    // Verify on-chain payment before inserting (bypass allowed in dev via DEV_BYPASS_BALANCE)
+    if (txSignature) {
+      try {
+        await verifyUsdcTx(txSignature, wallet, animalCfg.cost)
+      } catch (verifyErr: unknown) {
+        return NextResponse.json({ error: `Payment verification failed: ${String(verifyErr)}` }, { status: 402 })
+      }
+    } else if (process.env.DEV_BYPASS_BALANCE !== 'true') {
+      return NextResponse.json({ error: 'Transaction signature required' }, { status: 402 })
+    }
 
     const db = supabaseAdmin()
 

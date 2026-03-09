@@ -3,14 +3,51 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { FARMERS } from '@/config/game'
 import type { FarmerType } from '@/config/game'
 import { logEvent } from '@/lib/logEvent'
+import { verifyUsdcTx } from '@/lib/verifyTx'
+
+// GET /api/farmers/hire?plotId=&farmerType=&wallet= — preflight validation (no write)
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url)
+  const plotId     = Number(searchParams.get('plotId'))
+  const farmerType = searchParams.get('farmerType') ?? ''
+  const wallet     = searchParams.get('wallet') ?? ''
+
+  if (!plotId || !farmerType || !wallet)
+    return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
+
+  const farmerCfg = FARMERS[farmerType as FarmerType]
+  if (!farmerCfg) return NextResponse.json({ error: 'Invalid farmer type' }, { status: 400 })
+
+  const db = supabaseAdmin()
+  const { data: plot } = await db.from('plots').select('owner_wallet').eq('id', plotId).single()
+  if (!plot) return NextResponse.json({ error: 'Plot not found' }, { status: 404 })
+  if (plot.owner_wallet !== wallet) return NextResponse.json({ error: 'Not your plot' }, { status: 403 })
+
+  const { data: existing } = await db.from('farmers')
+    .select('id').eq('plot_id', plotId).eq('farmer_type', farmerType).maybeSingle()
+  if (existing) return NextResponse.json({ error: 'Already hired this farmer type' }, { status: 400 })
+
+  return NextResponse.json({ ok: true, cost: farmerCfg.cost })
+}
 
 export async function POST(req: Request) {
   try {
-    const { plotId, farmerType, wallet } = await req.json()
+    const { plotId, farmerType, wallet, txSignature } = await req.json()
     if (!plotId || !farmerType || !wallet) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
     const farmerCfg = FARMERS[farmerType as FarmerType]
     if (!farmerCfg) return NextResponse.json({ error: 'Invalid farmer type' }, { status: 400 })
+
+    // Verify on-chain payment before inserting (bypass allowed in dev via DEV_BYPASS_BALANCE)
+    if (txSignature) {
+      try {
+        await verifyUsdcTx(txSignature, wallet, farmerCfg.cost)
+      } catch (verifyErr: unknown) {
+        return NextResponse.json({ error: `Payment verification failed: ${String(verifyErr)}` }, { status: 402 })
+      }
+    } else if (process.env.DEV_BYPASS_BALANCE !== 'true') {
+      return NextResponse.json({ error: 'Transaction signature required' }, { status: 402 })
+    }
 
     const db = supabaseAdmin()
 
