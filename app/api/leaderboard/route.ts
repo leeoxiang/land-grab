@@ -15,15 +15,17 @@ const TIER_RANK: Record<string, number> = {
 export async function GET() {
   const db = supabaseAdmin()
 
+  type PlotRow = { owner_wallet: string | null; tier: string; custom_name?: string | null; upgrade_level?: number | null }
+
   // Try with upgrade_level; fall back if column not yet in DB
   const { data: withLevel, error: lvlErr } = await db
     .from('plots').select('owner_wallet, tier, custom_name, upgrade_level').not('owner_wallet', 'is', null)
   const { data: basic } = lvlErr
     ? await db.from('plots').select('owner_wallet, tier, custom_name').not('owner_wallet', 'is', null)
     : { data: null }
-  const plots = withLevel ?? basic
+  const plots: PlotRow[] = (withLevel ?? basic ?? []) as PlotRow[]
 
-  if (!plots) return NextResponse.json([])
+  if (!plots.length) return NextResponse.json([])
 
   const walletMap = new Map<string, {
     plots: number
