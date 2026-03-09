@@ -6,22 +6,35 @@ import type { Plot } from '@/types'
 const STEP         = PLOT_SIZE + PLOT_GAP
 const PLAYER_SPEED = 160 // px/s
 
+// Slot positions for animals within a plot (PLOT_SIZE = 500).
+// Layout matches the 3×2 SLOT_LABELS grid used by crops/trees.
+const ANIMAL_SLOT_OFFSETS: { ox: number; oy: number }[] = [
+  { ox: 120, oy: 140 }, // 0 Top-Left
+  { ox: 250, oy: 140 }, // 1 Top-Center
+  { ox: 380, oy: 140 }, // 2 Top-Right
+  { ox: 120, oy: 320 }, // 3 Bot-Left
+  { ox: 250, oy: 320 }, // 4 Bot-Center
+  { ox: 380, oy: 320 }, // 5 Bot-Right
+]
+
 declare global {
   var __fw: {
-    wallet:           string | null
-    onClick:          ((p: Plot) => void) | null
-    focusPlot:        ((col: number, row: number) => void) | null
-    addTreeSprite:    ((treeId: string, plotId: number, type: string, slot: number) => void) | null
-    removeTreeSprite: ((treeId: string) => void) | null
+    wallet:             string | null
+    onClick:            ((p: Plot) => void) | null
+    focusPlot:          ((col: number, row: number) => void) | null
+    addTreeSprite:      ((treeId: string, plotId: number, type: string, slot: number) => void) | null
+    removeTreeSprite:   ((treeId: string) => void) | null
     refreshPlotTrees:   ((plotId: number) => void) | null
     refreshFarmers:     ((plotId: number, count: number) => void) | null
-    refreshAnimals:     ((plotId: number, animalType: string) => void) | null
+    // Clears and rebuilds all animal sprites for one plot from the authoritative list.
+    // Call this after any animal purchase or on page data refresh.
+    refreshPlotAnimals: ((plotId: number, animals: { type: string; slot: number }[]) => void) | null
   }
 }
 if (!globalThis.__fw) globalThis.__fw = {
   wallet: null, onClick: null, focusPlot: null,
   addTreeSprite: null, removeTreeSprite: null, refreshPlotTrees: null,
-  refreshFarmers: null, refreshAnimals: null,
+  refreshFarmers: null, refreshPlotAnimals: null,
 }
 
 export function setSceneCallbacks(wallet: string | null, onClick: (p: Plot) => void) {
@@ -64,8 +77,8 @@ export class WorldScene extends Phaser.Scene {
   // Reference to the in-progress animated nav tween (so instant jumps can kill it)
   private navTween:      Phaser.Tweens.Tween | null
 
-  // Wandering animals
-  private animalSprites: Phaser.GameObjects.Sprite[]
+  // Animal sprites keyed by plot id for deterministic per-plot rebuild
+  private plotAnimalSprites: Map<number, Array<Phaser.GameObjects.Sprite | Phaser.GameObjects.Image>>
 
   // Hired farmer NPCs — keyed by plot id so refreshPlot can replace them
   private farmerSprites: Map<number, Phaser.GameObjects.Sprite[]>
@@ -116,9 +129,9 @@ export class WorldScene extends Phaser.Scene {
     this.currentRow    = 0
     this.lastDir       = 'down'
     this.isNavigating  = false
-    this.navTween      = null
-    this.animalSprites = []
-    this.dragStartX    = 0
+    this.navTween          = null
+    this.plotAnimalSprites = new Map()
+    this.dragStartX        = 0
     this.dragStartY    = 0
     this.dragScrollX   = 0
     this.dragScrollY   = 0
@@ -191,9 +204,8 @@ export class WorldScene extends Phaser.Scene {
         this.spawnFarmerNPCs(updated)
       }
     }
-    globalThis.__fw.refreshAnimals   = (plotId, animalType) => {
-      const plot = this.plots.find(p => p.id === plotId)
-      if (plot) this.spawnSingleAnimal(plot, animalType)
+    globalThis.__fw.refreshPlotAnimals = (plotId, animals) => {
+      this.refreshPlotAnimalsInternal(plotId, animals)
     }
 
     this.cam    = this.cameras.main
@@ -217,10 +229,10 @@ export class WorldScene extends Phaser.Scene {
     // ── Draw all plots ────────────────────────────────────────────────────────
     this.plots.forEach(plot => this.drawPlot(plot))
 
-    // ── Spawn purchased animals per plot (from DB via animal_types) ──────────
+    // ── Spawn purchased animals per plot (DB-backed, slot-positioned) ────────
     this.plots.forEach(plot => {
-      for (const animalType of (plot.animal_types ?? [])) {
-        this.spawnSingleAnimal(plot, animalType)
+      for (const a of (plot.plot_animals ?? [])) {
+        this.spawnSingleAnimal(plot, a.type, a.slot)
       }
     })
 
@@ -632,32 +644,53 @@ export class WorldScene extends Phaser.Scene {
     this.plotObjects.set(plot.id, container)
   }
 
-  private spawnSingleAnimal(plot: Plot, animalType: string) {
+  private spawnSingleAnimal(plot: Plot, animalType: string, slot: number) {
     const WANDER_TYPES = ['chicken', 'cow', 'pig', 'sheep'] as const
     const plotX  = plot.col * STEP + PLOT_GAP
     const plotY  = plot.row * STEP + PLOT_GAP
-    const margin = 80
-    const x = plotX + margin + Math.random() * (PLOT_SIZE - margin * 2)
-    const y = plotY + margin + Math.random() * (PLOT_SIZE - margin * 2)
+
+    // Use deterministic slot offset; keep safely within PLOT_SIZE bounds
+    const off = ANIMAL_SLOT_OFFSETS[Math.max(0, Math.min(slot, ANIMAL_SLOT_OFFSETS.length - 1))]
+    const x   = plotX + off.ox
+    const y   = plotY + off.oy
+
+    let obj: Phaser.GameObjects.Sprite | Phaser.GameObjects.Image
 
     if (animalType === 'beehive') {
-      // Beehive is a static image asset (loaded as image, not spritesheet) — place fixed, no wandering
-      this.add.image(x, y, 'beehive').setScale(0.8).setDepth(5)
-      return
+      // Beehive is a static Image asset — no animation or wandering
+      obj = this.add.image(x, y, 'beehive').setScale(0.8).setDepth(5)
+    } else {
+      const texKey = WANDER_TYPES.includes(animalType as typeof WANDER_TYPES[number])
+        ? animalType
+        : 'chicken'
+
+      const spr = this.add.sprite(x, y, texKey, 0)
+      spr.setScale(1.0)
+      spr.setDepth(5)
+      this.time.delayedCall(Math.random() * 500, () => this.wanderAnimal(spr, plotX, plotY))
+      obj = spr
     }
 
-    // For all other types fall back to 'chicken' if texture isn't loaded
-    const texKey = WANDER_TYPES.includes(animalType as typeof WANDER_TYPES[number])
-      ? animalType
-      : 'chicken'
+    // Track per-plot so we can clear and rebuild deterministically
+    const list = this.plotAnimalSprites.get(plot.id) ?? []
+    list.push(obj)
+    this.plotAnimalSprites.set(plot.id, list)
+  }
 
-    // 64×64 single-frame sprite — scale 1.0 renders at 64 world units
-    const spr = this.add.sprite(x, y, texKey, 0)
-    spr.setScale(1.0)
-    spr.setDepth(5)
+  // Destroy all animal sprites for a plot and respawn from authoritative list.
+  // Called after any purchase (immediate) and satisfies determinism on rebuild.
+  private refreshPlotAnimalsInternal(plotId: number, animals: { type: string; slot: number }[]) {
+    // Destroy existing sprites for this plot
+    const existing = this.plotAnimalSprites.get(plotId) ?? []
+    existing.forEach(s => s.destroy())
+    this.plotAnimalSprites.delete(plotId)
 
-    this.animalSprites.push(spr)
-    this.time.delayedCall(Math.random() * 500, () => this.wanderAnimal(spr, plotX, plotY))
+    // Respawn from the given list
+    const plot = this.plots.find(p => p.id === plotId)
+    if (!plot) return
+    for (const { type, slot } of animals) {
+      this.spawnSingleAnimal(plot, type, slot)
+    }
   }
 
   private wanderAnimal(spr: Phaser.GameObjects.Sprite, plotX: number, plotY: number) {

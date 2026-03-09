@@ -18,8 +18,8 @@ export interface Plot {
   custom_name?:  string | null
   upgrade_level?: number
   view_count?:   number
-  farmer_count?: number    // injected by /api/plots bulk endpoint
-  animal_types?: string[]  // injected by /api/plots bulk endpoint
+  farmer_count?: number                           // injected by /api/plots bulk endpoint
+  plot_animals?: { type: string; slot: number }[] // injected by /api/plots bulk endpoint
 }
 
 export interface Crop {
@@ -47,6 +47,7 @@ export interface Animal {
   id: string
   plot_id: number
   animal_type: AnimalType
+  slot: number
   purchased_at: string
   last_harvest: string | null
   next_harvest: string
