@@ -57,6 +57,9 @@ export async function POST(req: Request) {
 
   if (existingMember) return NextResponse.json({ error: 'Already in a tribe — leave first' }, { status: 400 })
 
+  // Generate a unique 8-char invite code
+  const invite_code = Math.random().toString(36).substring(2, 10).toUpperCase()
+
   const { data: tribe, error } = await db
     .from('tribes')
     .insert({
@@ -65,6 +68,7 @@ export async function POST(req: Request) {
       leader_wallet: wallet,
       description:   description?.trim().slice(0, 120) ?? null,
       plot_id:       plot_id ?? null,
+      invite_code,
     })
     .select()
     .single()

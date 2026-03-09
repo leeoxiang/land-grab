@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   // Upsert player FIRST (plots.owner_wallet has FK → players.wallet)
-  await db.from('players').upsert({ wallet, updated_at: new Date().toISOString() }, { onConflict: 'wallet' })
+  await db.from('players').upsert({ wallet }, { onConflict: 'wallet' })
 
   // Claim plot
   const { data: updated, error: updateErr } = await db
