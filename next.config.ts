@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     root: __dirname,
   },
   // Server-side externals for packages that only work in browser
-  serverExternalPackages: ['phaser', 'pg', 'pg-pool'],
+  serverExternalPackages: ['phaser', 'pg'],
 }
 
 export default nextConfig
