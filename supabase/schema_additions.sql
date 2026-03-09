@@ -71,3 +71,5 @@ CREATE TABLE IF NOT EXISTS player_status (
 -- 8. Missed columns from prior sessions
 ALTER TABLE plots ADD COLUMN IF NOT EXISTS custom_name    text;
 ALTER TABLE plots ADD COLUMN IF NOT EXISTS upgrade_level  int DEFAULT 1;
+ALTER TABLE plots ADD COLUMN IF NOT EXISTS farmer_count   int DEFAULT 0;
+ALTER TABLE trees ADD COLUMN IF NOT EXISTS slot           int DEFAULT 0;

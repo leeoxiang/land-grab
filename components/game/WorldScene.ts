@@ -13,12 +13,14 @@ declare global {
     focusPlot:        ((col: number, row: number) => void) | null
     addTreeSprite:    ((treeId: string, plotId: number, type: string, slot: number) => void) | null
     removeTreeSprite: ((treeId: string) => void) | null
-    refreshPlotTrees: ((plotId: number) => void) | null
+    refreshPlotTrees:   ((plotId: number) => void) | null
+    refreshFarmers:     ((plotId: number, count: number) => void) | null
   }
 }
 if (!globalThis.__fw) globalThis.__fw = {
   wallet: null, onClick: null, focusPlot: null,
   addTreeSprite: null, removeTreeSprite: null, refreshPlotTrees: null,
+  refreshFarmers: null,
 }
 
 export function setSceneCallbacks(wallet: string | null, onClick: (p: Plot) => void) {
@@ -180,6 +182,14 @@ export class WorldScene extends Phaser.Scene {
     globalThis.__fw.addTreeSprite    = (id, plotId, type, slot) => this.addTreeSpriteInternal(id, plotId, type, slot)
     globalThis.__fw.removeTreeSprite = (id) => this.removeTreeSpriteInternal(id)
     globalThis.__fw.refreshPlotTrees = (plotId) => this.refreshPlotTreesInternal(plotId)
+    globalThis.__fw.refreshFarmers   = (plotId, count) => {
+      const plot = this.plots.find(p => p.id === plotId)
+      if (plot) {
+        const updated = { ...plot, farmer_count: count }
+        this.plots = this.plots.map(p => p.id === plotId ? updated : p)
+        this.spawnFarmerNPCs(updated)
+      }
+    }
 
     this.cam    = this.cameras.main
     this.totalW = WORLD_COLS * STEP

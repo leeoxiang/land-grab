@@ -25,16 +25,35 @@ export async function POST(req: Request) {
     const tierCfg   = PLOT_TIERS[plot.tier as PlotTier]
     const plantedAt = new Date()
     const readyAt   = new Date(plantedAt.getTime() + treeCfg.growMs / tierCfg.speed)
+    const safeSlot  = Math.min(5, Math.max(0, Number(slot) || 0))
 
-    const { data: tree, error } = await db.from('trees').insert({
+    // Try inserting with slot first; if the column doesn't exist yet, insert without it
+    let tree: unknown = null
+    let insertError: { message: string } | null = null
+
+    const withSlot = await db.from('trees').insert({
       plot_id:    plotId,
       tree_type:  treeType,
       planted_at: plantedAt.toISOString(),
       ready_at:   readyAt.toISOString(),
-      slot:       Math.min(5, Math.max(0, Number(slot) || 0)),
+      slot:       safeSlot,
     }).select().single()
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (withSlot.error) {
+      // Slot column probably missing — retry without it
+      const withoutSlot = await db.from('trees').insert({
+        plot_id:    plotId,
+        tree_type:  treeType,
+        planted_at: plantedAt.toISOString(),
+        ready_at:   readyAt.toISOString(),
+      }).select().single()
+      tree        = withoutSlot.data
+      insertError = withoutSlot.error
+    } else {
+      tree = withSlot.data
+    }
+
+    if (insertError) return NextResponse.json({ error: (insertError as { message: string }).message }, { status: 500 })
 
     try { await logEvent('plant_tree', plotId, wallet, { tree_type: treeType }) } catch { /* non-critical */ }
 

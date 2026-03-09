@@ -1170,11 +1170,16 @@ function FarmersTab({ plotId, detail, onRefresh }: { plotId: number; detail: Plo
 
   const hireFarmer = async (farmerType: string) => {
     if (!publicKey) return
-    await fetch('/api/farmers/hire', {
+    const res = await fetch('/api/farmers/hire', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ plotId, farmerType, wallet: publicKey.toString() }),
     })
+    if (res.ok) {
+      const data = await res.json()
+      // Immediately spawn the farmer NPC sprite in Phaser
+      globalThis.__fw?.refreshFarmers?.(plotId, data.farmerCount ?? 1)
+    }
     await onRefresh()
   }
 
