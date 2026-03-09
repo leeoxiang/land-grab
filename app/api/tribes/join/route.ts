@@ -26,7 +26,12 @@ export async function POST(req: Request) {
 
   if ((count ?? 0) >= 10) return NextResponse.json({ error: 'Tribe is full (max 10 members)' }, { status: 400 })
 
-  // Already in a tribe?
+  // Already leads a different tribe?
+  const { data: ownedTribe } = await db
+    .from('tribes').select('id').eq('leader_wallet', wallet).maybeSingle()
+  if (ownedTribe) return NextResponse.json({ error: 'Disband your tribe before joining another' }, { status: 400 })
+
+  // Already in a tribe as member?
   const { data: existing } = await db
     .from('tribe_members')
     .select('tribe_id')
