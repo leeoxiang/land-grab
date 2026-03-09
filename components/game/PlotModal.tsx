@@ -633,12 +633,14 @@ function StatBox({ value, label, color }: { value: number; label: string; color:
 
 function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; detail: PlotFull | null; tier: string; now: number; onRefresh: () => Promise<void> }) {
   const { publicKey } = useWallet()
-  const [planting, setPlanting] = useState(false)
+  const [planting,        setPlanting]        = useState(false)
+  const [pendingCropType, setPendingCropType] = useState<string | null>(null)
   const cfg = PLOT_TIERS[tier as keyof typeof PLOT_TIERS]
 
   const plantCrop = async (cropType: string, slot: number) => {
     if (!publicKey) return
     setPlanting(true)
+    setPendingCropType(null)
     try {
       const res  = await fetch('/api/crops/plant', {
         method:  'POST',
@@ -717,20 +719,30 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
         </div>
       )}
 
-      {/* Plant new */}
+      {/* Plant new — 2-step: pick crop type → pick slot */}
       <div>
         <h3 className="text-sm font-bold mb-2" style={{ color: 'var(--ui-darkest)' }}>
-          Plant (Slot {activeCrops.length + 1}/{cfg.cropSlots})
+          Plant ({activeCrops.length}/{cfg.cropSlots} slots used)
         </h3>
         {activeCrops.length >= cfg.cropSlots ? (
           <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>All slots occupied</p>
+        ) : pendingCropType ? (
+          <div className="space-y-3">
+            <div className="text-xs" style={{ color: 'var(--ui-darkest)' }}>
+              Planting: <strong>{CROPS[pendingCropType as keyof typeof CROPS]?.name}</strong>
+            </div>
+            <SlotPicker usedSlots={activeCrops.map(c => c.slot)} onPick={slot => plantCrop(pendingCropType, slot)} totalSlots={cfg.cropSlots} />
+            <button onClick={() => setPendingCropType(null)} className="pixel-btn" style={{ fontSize: 8, padding: '4px 10px' }}>
+              Cancel
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(CROPS).map(([key, c]) => (
               <button
                 key={key}
                 disabled={planting}
-                onClick={() => plantCrop(key, activeCrops.length)}
+                onClick={() => setPendingCropType(key)}
                 className="pixel-inset text-left p-3 hover:brightness-110 transition-all"
               >
                 <div className="text-sm" style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -753,43 +765,64 @@ function CropsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; de
 function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; detail: PlotFull | null; tier: string; now: number; onRefresh: () => Promise<void> }) {
   const { publicKey } = useWallet()
   const { transferUsdc } = useUsdcTransfer()
-  const [buying, setBuying] = useState(false)
-  const [buyErr, setBuyErr] = useState<string | null>(null)
+  const [buying, setBuying]                       = useState(false)
+  const [buyErr, setBuyErr]                       = useState<string | null>(null)
+  // Step 1 → Step 2: pending animal type + preflight usedSlots
+  const [pendingAnimalType, setPendingAnimalType] = useState<string | null>(null)
+  const [preflightUsedSlots, setPreflightUsedSlots] = useState<number[]>([])
   const cfg = PLOT_TIERS[tier as keyof typeof PLOT_TIERS]
 
-  const buyAnimal = async (animalType: string) => {
+  // Step 1: pick animal type — run preflight, then show slot picker
+  const selectAnimalType = async (animalType: string) => {
     if (!publicKey || buying) return
     setBuying(true); setBuyErr(null)
     try {
-      // 1. Preflight — validate server-side BEFORE opening Phantom
       const pre = await fetch(
         `/api/animals/buy?plotId=${plotId}&animalType=${animalType}&wallet=${publicKey.toString()}`
       )
       const preData = await pre.json()
       if (!pre.ok) throw new Error(preData.error || 'Cannot buy animal')
+      setPreflightUsedSlots(preData.usedSlots ?? [])
+      setPendingAnimalType(animalType)
+    } catch (e: unknown) {
+      setBuyErr(e instanceof Error ? e.message : 'Failed to validate animal purchase')
+    } finally {
+      setBuying(false)
+    }
+  }
 
-      // 2. Payment — only reached if preflight passed
+  // Step 2: pick slot → pay → commit
+  const commitBuyAnimal = async (slot: number) => {
+    if (!publicKey || buying || !pendingAnimalType) return
+    const animalType = pendingAnimalType
+    setBuying(true); setBuyErr(null)
+    try {
+      const animalCfg = ANIMALS[animalType as keyof typeof ANIMALS]
+
+      // Payment
       let txSignature: string | undefined
       try {
-        txSignature = await transferUsdc(preData.cost ?? 1)
+        txSignature = await transferUsdc(animalCfg.cost ?? 1)
       } catch (txErr: unknown) {
         const msg = txErr instanceof Error ? txErr.message : ''
         if (!msg.includes('not configured')) throw txErr
-        // treasury not configured — dev bypass
       }
 
-      // 3. Commit with verified signature
+      // Commit
       const res  = await fetch('/api/animals/buy', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ plotId, animalType, wallet: publicKey.toString(), txSignature }),
+        body:    JSON.stringify({ plotId, animalType, wallet: publicKey.toString(), txSignature, slot }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to buy animal')
 
-      // Spawn the new animal sprite immediately in Phaser
-      globalThis.__fw?.refreshAnimals?.(plotId, animalType)
+      // Rebuild world sprites (clear + respawn for this plot)
+      const existingAnimals = (detail?.animals ?? []).map(a => ({ type: a.animal_type, slot: a.slot }))
+      const freshAnimals = [...existingAnimals, { type: animalType, slot: data.animal?.slot ?? slot }]
+      globalThis.__fw?.refreshPlotAnimals?.(plotId, freshAnimals)
 
+      setPendingAnimalType(null)
       await onRefresh()
     } catch (e: unknown) {
       setBuyErr(e instanceof Error ? e.message : 'Failed to buy animal')
@@ -854,10 +887,20 @@ function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; 
         {buyErr && <p className="text-xs mb-2" style={{ color: '#ff6666' }}>{buyErr}</p>}
         {activeAnimals.length >= cfg.animalSlots ? (
           <p className="text-sm" style={{ color: 'var(--ui-dark)' }}>Animal slots full</p>
+        ) : pendingAnimalType ? (
+          <div className="space-y-3">
+            <div className="text-xs" style={{ color: 'var(--ui-darkest)' }}>
+              Placing: <strong>{ANIMALS[pendingAnimalType as keyof typeof ANIMALS]?.name}</strong>
+            </div>
+            <SlotPicker usedSlots={preflightUsedSlots} onPick={slot => commitBuyAnimal(slot)} totalSlots={cfg.animalSlots} />
+            <button onClick={() => { setPendingAnimalType(null); setBuyErr(null) }} className="pixel-btn" style={{ fontSize: 8, padding: '4px 10px' }}>
+              Cancel
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(ANIMALS).map(([key, a]) => (
-              <button key={key} onClick={() => buyAnimal(key)} disabled={buying}
+              <button key={key} onClick={() => selectAnimalType(key)} disabled={buying}
                 className="pixel-inset text-left p-3 hover:brightness-110 transition-all"
                 style={{ opacity: buying ? 0.6 : 1 }}>
                 <div className="text-sm" style={{ color: 'var(--ui-text)', display: 'flex', alignItems: 'center' }}><PixelIcon icon="animal" size={12} style={{ marginRight: 4 }} />{a.name}</div>
@@ -878,14 +921,14 @@ function AnimalsTab({ plotId, detail, tier, now, onRefresh }: { plotId: number; 
 // Slot positions shown as a mini grid (3×2)
 const SLOT_LABELS = ['Top-Left', 'Top-Center', 'Top-Right', 'Bot-Left', 'Bot-Center', 'Bot-Right']
 
-function SlotPicker({ usedSlots, onPick }: { usedSlots: number[]; onPick: (slot: number) => void }) {
+function SlotPicker({ usedSlots, onPick, totalSlots = 6 }: { usedSlots: number[]; onPick: (slot: number) => void; totalSlots?: number }) {
   return (
     <div>
       <div className="text-xs mb-2" style={{ color: 'var(--ui-dark)', fontFamily: '"Press Start 2P", monospace', fontSize: 8 }}>
         PICK A SPOT ON YOUR PLOT:
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
-        {SLOT_LABELS.map((label, i) => {
+        {SLOT_LABELS.slice(0, totalSlots).map((label, i) => {
           const taken = usedSlots.includes(i)
           return (
             <button key={i} disabled={taken} onClick={() => onPick(i)}
