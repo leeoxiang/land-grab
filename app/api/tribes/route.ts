@@ -17,14 +17,12 @@ export async function GET(req: Request) {
     .maybeSingle()
 
   if (leadErr) {
-    const msg = leadErr.message ?? ''
-    if (msg.includes('schema cache') || msg.includes('relation') || msg.includes('does not exist')) {
-      return NextResponse.json(
-        { error: `Tribes table missing — run supabase/migrations/001_tribes.sql in your Supabase SQL editor.` },
-        { status: 503 },
-      )
-    }
-    return NextResponse.json({ error: msg }, { status: 500 })
+    return NextResponse.json({
+      error: leadErr.message,
+      code: leadErr.code,
+      details: leadErr.details,
+      hint: leadErr.hint,
+    }, { status: 500 })
   }
 
   if (ownedTribe) return NextResponse.json({ tribe: ownedTribe, role: 'leader' })
@@ -51,20 +49,40 @@ export async function POST(req: Request) {
   const db = supabaseAdmin()
 
   // Already leads a tribe?
-  const { data: existingLead } = await db
+  const { data: existingLead, error: leadCheckErr } = await db
     .from('tribes')
     .select('id')
     .eq('leader_wallet', wallet)
     .maybeSingle()
 
+  if (leadCheckErr) {
+    return NextResponse.json({
+      error: leadCheckErr.message,
+      code: leadCheckErr.code,
+      details: leadCheckErr.details,
+      hint: leadCheckErr.hint,
+      step: 'lead_check',
+    }, { status: 500 })
+  }
+
   if (existingLead) return NextResponse.json({ error: 'Already leading a tribe' }, { status: 400 })
 
   // Already a member?
-  const { data: existingMember } = await db
+  const { data: existingMember, error: memberCheckErr } = await db
     .from('tribe_members')
     .select('tribe_id')
     .eq('wallet', wallet)
     .maybeSingle()
+
+  if (memberCheckErr) {
+    return NextResponse.json({
+      error: memberCheckErr.message,
+      code: memberCheckErr.code,
+      details: memberCheckErr.details,
+      hint: memberCheckErr.hint,
+      step: 'member_check',
+    }, { status: 500 })
+  }
 
   if (existingMember) return NextResponse.json({ error: 'Already in a tribe — leave first' }, { status: 400 })
 
@@ -85,12 +103,13 @@ export async function POST(req: Request) {
     .single()
 
   if (error) {
-    // PostgREST schema-cache miss means the tribes table hasn't been created yet
-    const msg = error.message ?? ''
-    const actionable = msg.includes('schema cache') || msg.includes('relation') || msg.includes('does not exist')
-      ? `${msg} — Run supabase/migrations/001_tribes.sql in your Supabase SQL editor to create the tribes tables.`
-      : msg
-    return NextResponse.json({ error: actionable }, { status: 400 })
+    return NextResponse.json({
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      step: 'insert',
+    }, { status: 500 })
   }
 
   return NextResponse.json({ tribe })
