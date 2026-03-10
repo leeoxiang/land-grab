@@ -122,3 +122,163 @@
 
 /* ── Pixel-perfect images ─────────────────────────────────────────────────── */
 img.pixel { image-rendering: pixelated; }
+
+/* ── HUD header ──────────────────────────────────────────────────────────── */
+.hud-header {
+  background: linear-gradient(180deg, #1e1106 0%, #1a0f05 70%, #160d04 100%);
+  border-bottom: 4px solid #5c3317;
+  box-shadow: 0 2px 0 #3a1f0a, 0 4px 20px rgba(92, 51, 23, 0.22);
+}
+
+/* Thin vertical rule between header clusters */
+.hud-divider {
+  width: 2px;
+  height: 20px;
+  background: #2e1708;
+  border-left: 1px solid #140a03;
+  flex-shrink: 0;
+}
+
+/* ── HUD stats bar ───────────────────────────────────────────────────────── */
+.hud-stats {
+  background: #0e0702;
+  border-bottom: 2px solid #231005;
+  box-shadow: inset 0 1px 0 rgba(92, 51, 23, 0.08);
+}
+
+.hud-stat-sep {
+  width: 1px;
+  height: 14px;
+  background: #2a1208;
+  flex-shrink: 0;
+}
+
+/* ── Social icon buttons ─────────────────────────────────────────────────── */
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #2e1708;
+  background: #140a03;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.1s, background 0.1s;
+  text-decoration: none;
+}
+.social-btn:hover {
+  border-color: #a07840;
+  background: #221005;
+}
+
+/* ── Music player ────────────────────────────────────────────────────────── */
+.music-player {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.music-label {
+  color: #4a2810;
+  font-size: 10px;
+  font-family: 'Press Start 2P', monospace;
+  user-select: none;
+  line-height: 1;
+}
+
+.music-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  line-height: 1;
+  background: #140a03;
+  border: 2px solid #2e1708;
+  color: #8a5a2a;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+  transition: border-color 0.1s, color 0.1s;
+  -webkit-font-smoothing: none;
+}
+.music-btn:hover {
+  border-color: #a07840;
+  color: #e8c090;
+}
+
+/* Volume slider — pixel-style */
+.vol-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 56px;
+  height: 4px;
+  background: #2a1208;
+  border: 1px solid #3a1f0a;
+  outline: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.vol-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 8px;
+  height: 14px;
+  background: #c8975a;
+  border: 2px solid #3a1f0a;
+  cursor: pointer;
+  border-radius: 0;
+}
+.vol-slider::-moz-range-thumb {
+  width: 8px;
+  height: 14px;
+  background: #c8975a;
+  border: 2px solid #3a1f0a;
+  cursor: pointer;
+  border-radius: 0;
+}
+
+/* ── Game vignette overlay ───────────────────────────────────────────────── */
+/* Sits above the canvas, pointer-events off so it never blocks clicks */
+.game-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.52) 100%);
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.55),
+    inset 0 0 6px rgba(92, 51, 23, 0.18);
+  z-index: 1;
+}
+
+/* ── Loading screen ──────────────────────────────────────────────────────── */
+@keyframes loading-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.65; }
+  50%       { transform: scale(1.1); opacity: 1;    }
+}
+.loading-pulse {
+  animation: loading-pulse 1.6s ease-in-out infinite;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.loading-dots span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #2a1208;
+}
+@keyframes dot-blink {
+  0%, 100% { background: #221005; }
+  50%       { background: #c8975a; }
+}
+.loading-dots span:nth-child(1) { animation: dot-blink 1.2s 0.0s infinite; }
+.loading-dots span:nth-child(2) { animation: dot-blink 1.2s 0.4s infinite; }
+.loading-dots span:nth-child(3) { animation: dot-blink 1.2s 0.8s infinite; }
