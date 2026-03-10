@@ -59,7 +59,7 @@ export async function GET() {
   const anonRef        = anonPayload    ? refFromPayload(anonPayload)    : null
   const refsMatch      = !!(urlRef && serviceRef && urlRef === serviceRef)
 
-  // Probe all critical tables
+  // Probe all critical tables in parallel
   const [plots, tribes, tribeMembers, tribeApps, players] = await Promise.all([
     probeTable('plots'),
     probeTable('tribes'),
@@ -68,13 +68,39 @@ export async function GET() {
     probeTable('players'),
   ])
 
+  // Stale-deployment signal: this timestamp is baked in at build time.
+  // If the deployment is stale, this value won't match the latest push time.
+  const buildTime = process.env.VERCEL_GIT_COMMIT_SHA
+    ?? process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA
+    ?? '(no VERCEL_GIT_COMMIT_SHA — not a Vercel deployment or env missing)'
+
+  // Diagnose the PostgREST schema-cache error specifically.
+  // If refs match AND tables exist in Postgres but this still errors,
+  // the PostgREST schema cache needs a reload.
+  const allTablesOk = tribes.exists && tribeMembers.exists && tribeApps.exists
+  const schemaVerdict = allTablesOk
+    ? '✅ All tribe tables reachable via PostgREST'
+    : tribes.error?.includes('schema cache')
+      ? '❌ PostgREST schema cache stale — run: NOTIFY pgrst, \'reload schema\'; in Supabase SQL editor'
+      : '❌ Tribe tables not reachable — check migration was run'
+
   return NextResponse.json({
+    // ── Build / deployment identity ──────────────────────────────
+    deployment: {
+      servedAt:     new Date().toISOString(),
+      gitCommitSha: buildTime,
+      note: 'If gitCommitSha does not match your latest GitHub commit, the deployment is stale — trigger a redeploy in Vercel.',
+    },
+
+    // ── Env checks ────────────────────────────────────────────────
     env: {
       supabaseUrl:          supabaseUrl || '(not set)',
       serviceKeySet:        !!serviceKey,
       serviceKeyPrefix:     serviceKey ? serviceKey.slice(0, 20) + '…' : '(not set)',
       anonKeySet:           !!anonKey,
     },
+
+    // ── Ref comparison ────────────────────────────────────────────
     refs: {
       fromUrl:        urlRef,
       fromServiceKey: serviceRef,
@@ -86,10 +112,14 @@ export async function GET() {
           ? `❌ MISMATCH — URL="${urlRef}"  serviceKey="${serviceRef}"`
           : `⚠️  Cannot extract ref from service key payload`,
     },
+
+    // ── JWT payloads (safe — no secrets) ──────────────────────────
     jwtPayloads: {
       serviceRole: servicePayload,
       anon:        anonPayload,
     },
+
+    // ── Live table probes (bypasses nothing — real PostgREST call) ─
     tables: {
       plots,
       tribes,
@@ -97,6 +127,14 @@ export async function GET() {
       tribe_applications:  tribeApps,
       players,
     },
+
+    // ── Schema-cache diagnosis ─────────────────────────────────────
+    schemaCache: {
+      verdict: schemaVerdict,
+      fix: 'Run in Supabase SQL editor → NOTIFY pgrst, \'reload schema\';',
+      orVia: 'Supabase Dashboard → API → Reload schema cache button',
+    },
+
     _removeAfterDebugging: 'DELETE app/api/debug/supabase-ref/route.ts',
   })
 }
