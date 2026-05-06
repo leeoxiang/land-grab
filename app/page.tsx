@@ -21,7 +21,7 @@ const SOCIAL = [
   },
   {
     label: 'Pump.fun',
-    href:  'https://pump.fun',
+    href:  'https://pump.fun/coin/4R5KQBuarwMXZB4hh4G3RdP16BUbVFgaEH92VmENpump',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cbeb0e0ed83a682a1c1_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
