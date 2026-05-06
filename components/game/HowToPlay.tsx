@@ -264,7 +264,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
                 letterSpacing: 1,
                 lineHeight:   1,
               }}>
-                LAND GRAB
+                CROPLAND
               </div>
               <div style={{
                 fontFamily: '"Press Start 2P", monospace',

@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════
--- Land Grab — Complete Schema  (SAFE to re-run, uses IF NOT EXISTS)
+-- Cropland — Complete Schema  (SAFE to re-run, uses IF NOT EXISTS)
 -- Paste this entire block into your Supabase SQL editor and run it.
 -- ══════════════════════════════════════════════════════════════════
 

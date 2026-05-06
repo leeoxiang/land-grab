@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Land Grab — Schema Additions (run in Supabase SQL editor)
+-- Cropland — Schema Additions (run in Supabase SQL editor)
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Plot activity feed

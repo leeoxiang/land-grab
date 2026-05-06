@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Land Grab — FULL SCHEMA
+-- Cropland — FULL SCHEMA
 -- Run this ONE file in Supabase SQL Editor to set up everything.
 -- Safe to re-run: uses IF NOT EXISTS and DROP/CREATE for policies.
 -- ─────────────────────────────────────────────────────────────────────────────
