@@ -69,7 +69,7 @@ export default function Home() {
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <PixelIcon icon="crops" size={22} />
+          <img src="/logo.png" alt="Cropland" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
           <div>
             <h1 style={{ color: '#e8c090', fontSize: 13, letterSpacing: 2, fontFamily: '"Press Start 2P", monospace', lineHeight: 1 }}>
               CROPLAND

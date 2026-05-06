@@ -255,7 +255,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           flexShrink:   0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <PixelIcon icon="crops" size={24} />
+            <img src="/logo.png" alt="Cropland" width={24} height={24} style={{ imageRendering: 'pixelated' }} />
             <div>
               <div style={{
                 fontFamily:   '"Press Start 2P", monospace',
