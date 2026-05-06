@@ -16,7 +16,7 @@ const GameCanvas = dynamic(() => import('@/components/game/GameCanvas'), { ssr: 
 const SOCIAL = [
   {
     label: 'GitHub',
-    href:  'https://github.com/leeoxiang/land-grab',
+    href:  'https://github.com/CropLandFun/cropland',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983ebadee1a5bb66150c566_69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
@@ -26,7 +26,7 @@ const SOCIAL = [
   },
   {
     label: 'Twitter',
-    href:  'https://twitter.com',
+    href:  'https://x.com/cropfun',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter.png',
   },
   {
