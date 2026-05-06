@@ -72,7 +72,7 @@ export default function Home() {
           <img src="/logo.png" alt="Cropland" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
           <div>
             <h1 style={{ color: '#e8c090', fontSize: 13, letterSpacing: 2, fontFamily: '"Press Start 2P", monospace', lineHeight: 1 }}>
-              CROPLAND
+              CROP LAND
             </h1>
             <p className="hidden sm:block" style={{ color: '#5c3317', fontSize: 7, fontFamily: '"Press Start 2P", monospace', marginTop: 4, letterSpacing: 1 }}>
               SOLANA FARMING

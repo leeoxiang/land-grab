@@ -4,18 +4,18 @@ import SolanaWalletProvider from '@/components/WalletProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://cropland.fun'),
-  title: 'Cropland — Solana Farming Game',
+  title: 'Crop Land — Solana Farming Game',
   description: 'Claim plots, grow crops, raise animals, and raid your neighbours. A competitive farming game on Solana.',
   openGraph: {
-    title:       'Cropland — Solana Farming Game',
+    title:       'Crop Land — Solana Farming Game',
     description: 'Claim plots, grow crops, raise animals, and raid your neighbours.',
     type:        'website',
-    siteName:    'Cropland',
+    siteName:    'Crop Land',
     url:         'https://cropland.fun',
   },
   twitter: {
     card:        'summary',
-    title:       'Cropland — Solana Farming Game',
+    title:       'Crop Land — Solana Farming Game',
     description: 'Claim plots, grow crops, raise animals, and raid your neighbours.',
   },
 }

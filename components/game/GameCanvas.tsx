@@ -272,7 +272,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
         if (Date.now() >= readyAt) {
           const label = key.replace(prefix, '').replace(/_/g, ' ')
           if (Notification.permission === 'granted') {
-            new Notification('Cropland', { body: `${label} is ready to harvest!`, icon: '/logo.png' })
+            new Notification('Crop Land', { body: `${label} is ready to harvest!`, icon: '/logo.png' })
           }
           localStorage.removeItem(key)
         }
