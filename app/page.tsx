@@ -31,7 +31,7 @@ const SOCIAL = [
   },
   {
     label: 'Medium',
-    href:  'https://medium.com',
+    href:  'https://medium.com/@CropLandFun',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983eb56f1ca3d355dfdf898_medium.png',
   },
 ]
