@@ -21,7 +21,7 @@ const SOCIAL = [
   },
   {
     label: 'Clanker',
-    href:  'https://clanker.world',
+    href:  'https://clanker.world/clanker/SOON',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6a14d6ca47a78a2038132f21_69dd7f93fb22ee09213e58b5_ithub%20logo%20(2).png',
   },
   {
@@ -119,7 +119,7 @@ export default function Home() {
             Market
           </button>
           <a
-            href="https://clanker.world"
+            href="https://clanker.world/clanker/SOON"
             target="_blank"
             rel="noopener noreferrer"
             className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
@@ -177,7 +177,7 @@ export default function Home() {
               <PixelIcon icon="coin" size={12} />
             </button>
             <a
-              href="https://clanker.world"
+              href="https://clanker.world/clanker/SOON"
               target="_blank"
               rel="noopener noreferrer"
               className="pixel-btn flex items-center gap-1 px-2 py-1.5"
