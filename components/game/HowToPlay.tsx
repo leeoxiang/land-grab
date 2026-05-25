@@ -156,7 +156,7 @@ const STEPS = [
   {
     Icon:    IconFlag,
     title:   'Claim Your Plot',
-    body:    'Connect a Solana wallet and claim any free plot to start farming. New wallets receive a free Bronze plot automatically.',
+    body:    'Connect a Base wallet and claim any free plot to start farming. New wallets receive a free Bronze plot automatically.',
     accent:  '#c0c0c0',
     tag:     '02',
   },
@@ -255,7 +255,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           flexShrink:   0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/logo.png" alt="Cropland" width={24} height={24} style={{ imageRendering: 'pixelated' }} />
+            <img src="/logo.png" alt="Wheat World" width={24} height={24} style={{ imageRendering: 'pixelated' }} />
             <div>
               <div style={{
                 fontFamily:   '"Press Start 2P", monospace',
@@ -264,7 +264,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
                 letterSpacing: 1,
                 lineHeight:   1,
               }}>
-                CROP LAND
+                WHEAT WORLD
               </div>
               <div style={{
                 fontFamily: '"Press Start 2P", monospace',

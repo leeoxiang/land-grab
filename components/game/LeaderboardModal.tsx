@@ -44,7 +44,7 @@ export default function LeaderboardModal({ onClose }: { onClose: () => void }) {
         {/* Header */}
         <div className="pixel-panel-header flex items-center justify-between p-4">
           <h2 className="font-bold text-base" style={{ color: 'var(--ui-text-dark)' }}>
-            Crop Land — Leaderboard
+            Wheat World — Leaderboard
           </h2>
           <button onClick={onClose} className="pixel-btn w-10 h-10 flex items-center justify-center text-xl">×</button>
         </div>
