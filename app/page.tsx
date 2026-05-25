@@ -20,9 +20,9 @@ const SOCIAL = [
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983ebadee1a5bb66150c566_69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
-    label: 'Pump.fun',
-    href:  'https://pump.fun/coin/4R5KQBuarwMXZB4hh4G3RdP16BUbVFgaEH92VmENpump',
-    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cbeb0e0ed83a682a1c1_68d5c1872568958fd78018bb_twitter%20(1).png',
+    label: 'Bankr',
+    href:  'https://bankr.bot/launches/',
+    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6a14bc518ac99a40d7f68fc4_69dd7f93fb22ee09213e58b5_ithub%20logo%20(1).png',
   },
   {
     label: 'Twitter',
