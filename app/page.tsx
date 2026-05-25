@@ -20,9 +20,9 @@ const SOCIAL = [
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983ebadee1a5bb66150c566_69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
-    label: 'Clanker',
-    href:  'https://clanker.world',
-    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6a14d6ca47a78a2038132f21_69dd7f93fb22ee09213e58b5_ithub%20logo%20(2).png',
+    label: 'Bankr',
+    href:  'https://bankr.bot/launches/',
+    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6a14bc518ac99a40d7f68fc4_69dd7f93fb22ee09213e58b5_ithub%20logo%20(1).png',
   },
   {
     label: 'Twitter',
@@ -119,12 +119,12 @@ export default function Home() {
             Market
           </button>
           <a
-            href="https://clanker.world"
+            href="https://bankr.bot/launches/"
             target="_blank"
             rel="noopener noreferrer"
             className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
             style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', boxShadow: 'inset 1px 1px 0 #f0b820, inset -1px -1px 0 #5a4000, 3px 3px 0 #3a2800', fontSize: 10, textDecoration: 'none' }}
-            title="Buy $WHEAT on Clanker"
+            title="Buy $WHEAT on Bankr"
           >
             <PixelIcon icon="coin" size={12} />
             Buy $WHEAT
@@ -177,12 +177,12 @@ export default function Home() {
               <PixelIcon icon="coin" size={12} />
             </button>
             <a
-              href="https://clanker.world"
+              href="https://bankr.bot/launches/"
               target="_blank"
               rel="noopener noreferrer"
               className="pixel-btn flex items-center gap-1 px-2 py-1.5"
               style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', fontSize: 9, textDecoration: 'none' }}
-              title="Buy $WHEAT on Clanker"
+              title="Buy $WHEAT on Bankr"
             >
               <PixelIcon icon="coin" size={10} />
               $WHEAT
