@@ -118,6 +118,17 @@ export default function Home() {
             <PixelIcon icon="coin" size={12} />
             Market
           </button>
+          <a
+            href="https://bankr.bot/launches/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
+            style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', boxShadow: 'inset 1px 1px 0 #f0b820, inset -1px -1px 0 #5a4000, 3px 3px 0 #3a2800', fontSize: 10, textDecoration: 'none' }}
+            title="Buy $WHEAT on Bankr"
+          >
+            <PixelIcon icon="coin" size={12} />
+            Buy $WHEAT
+          </a>
           <button
             onClick={() => setShowHowTo(true)}
             className="pixel-btn px-3 py-1.5"
@@ -130,7 +141,7 @@ export default function Home() {
         <div className="flex items-center gap-2 shrink-0">
 
           {/* Social icons */}
-          <div className="hidden sm:flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1.5">
             {SOCIAL.map(s => (
               <a
                 key={s.label}
@@ -141,7 +152,7 @@ export default function Home() {
                 title={s.label}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.icon} alt={s.label} width={14} height={14} style={{ objectFit: 'contain' }} />
+                <img src={s.icon} alt={s.label} width={22} height={22} style={{ objectFit: 'contain' }} />
               </a>
             ))}
           </div>
@@ -156,7 +167,7 @@ export default function Home() {
           {/* Wallet */}
           <ConnectButton />
 
-          {/* Mobile-only: market + help buttons */}
+          {/* Mobile-only: market + buy + help buttons */}
           <div className="flex sm:hidden items-center gap-1">
             <button
               onClick={() => setShowMarket(true)}
@@ -165,6 +176,17 @@ export default function Home() {
             >
               <PixelIcon icon="coin" size={12} />
             </button>
+            <a
+              href="https://bankr.bot/launches/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pixel-btn flex items-center gap-1 px-2 py-1.5"
+              style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', fontSize: 9, textDecoration: 'none' }}
+              title="Buy $WHEAT on Bankr"
+            >
+              <PixelIcon icon="coin" size={10} />
+              $WHEAT
+            </a>
             <button
               onClick={() => setShowHowTo(true)}
               className="pixel-btn px-2 py-1.5"
