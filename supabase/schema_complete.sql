@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════
--- Wheat World — Complete Schema  (SAFE to re-run, uses IF NOT EXISTS)
+-- Wheat.game — Complete Schema  (SAFE to re-run, uses IF NOT EXISTS)
 -- Paste this entire block into your Supabase SQL editor and run it.
 -- ══════════════════════════════════════════════════════════════════
 

@@ -271,7 +271,7 @@ export default function PlotModal({ plot, detail, loading, onClose, onUpdate, go
     const padded = String(plot.id).padStart(3, '0')
     const a = document.createElement('a')
     a.href = `/plots/plot-${padded}.png`
-    a.download = `wheatworld-plot-${plot.id}.png`
+    a.download = `wheatgame-plot-${plot.id}.png`
     a.click()
   }
 

@@ -272,7 +272,7 @@ export default function GameCanvas({ plots, onPlotsChange }: Props) {
         if (Date.now() >= readyAt) {
           const label = key.replace(prefix, '').replace(/_/g, ' ')
           if (Notification.permission === 'granted') {
-            new Notification('Wheat World', { body: `${label} is ready to harvest!`, icon: '/logo.png' })
+            new Notification('Wheat.game', { body: `${label} is ready to harvest!`, icon: '/logo.png' })
           }
           localStorage.removeItem(key)
         }

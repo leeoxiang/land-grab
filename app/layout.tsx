@@ -4,18 +4,18 @@ import SolanaWalletProvider from '@/components/WalletProvider'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://thewheat.world'),
-  title: 'Wheat World — Base Farming Game',
-  description: 'Claim plots, grow crops, raise animals, and raid your neighbours. A competitive farming game on Base.',
+  title: 'Wheat.game — Solana Farming Game',
+  description: 'Claim plots, grow crops, raise animals, and raid your neighbours. A competitive farming game on Solana.',
   openGraph: {
-    title:       'Wheat World — Base Farming Game',
+    title:       'Wheat.game — Solana Farming Game',
     description: 'Claim plots, grow crops, raise animals, and raid your neighbours.',
     type:        'website',
-    siteName:    'Wheat World',
+    siteName:    'Wheat.game',
     url:         'https://thewheat.world',
   },
   twitter: {
     card:        'summary',
-    title:       'Wheat World — Base Farming Game',
+    title:       'Wheat.game — Solana Farming Game',
     description: 'Claim plots, grow crops, raise animals, and raid your neighbours.',
   },
 }

@@ -20,9 +20,9 @@ const SOCIAL = [
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983ebadee1a5bb66150c566_69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
-    label: 'Clanker',
-    href:  'https://clanker.world/clanker/0x91c37fff4e0d2cde13a099052f78b7841c0e1b07',
-    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6a14d6ca47a78a2038132f21_69dd7f93fb22ee09213e58b5_ithub%20logo%20(2).png',
+    label: 'Pump.fun',
+    href:  'https://pump.fun/coin/4R5KQBuarwMXZB4hh4G3RdP16BUbVFgaEH92VmENpump',
+    icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cbeb0e0ed83a682a1c1_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
     label: 'Twitter',
@@ -69,13 +69,13 @@ export default function Home() {
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <img src="/logo.png" alt="Wheat World" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
+          <img src="/logo.png" alt="Wheat.game" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
           <div>
             <h1 style={{ color: '#e8c090', fontSize: 13, letterSpacing: 2, fontFamily: '"Press Start 2P", monospace', lineHeight: 1 }}>
-              WHEAT WORLD
+              WHEAT.GAME
             </h1>
             <p className="hidden sm:block" style={{ color: '#5c3317', fontSize: 7, fontFamily: '"Press Start 2P", monospace', marginTop: 4, letterSpacing: 1 }}>
-              BASE FARMING
+              SOLANA FARMING
             </p>
           </div>
         </div>
@@ -119,12 +119,12 @@ export default function Home() {
             Market
           </button>
           <a
-            href="https://clanker.world/clanker/0x91c37fff4e0d2cde13a099052f78b7841c0e1b07"
+            href="https://pump.fun/coin/4R5KQBuarwMXZB4hh4G3RdP16BUbVFgaEH92VmENpump"
             target="_blank"
             rel="noopener noreferrer"
             className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
             style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', boxShadow: 'inset 1px 1px 0 #f0b820, inset -1px -1px 0 #5a4000, 3px 3px 0 #3a2800', fontSize: 10, textDecoration: 'none' }}
-            title="Buy $WHEAT on Clanker"
+            title="Buy $WHEAT on Pump.fun"
           >
             <PixelIcon icon="coin" size={12} />
             Buy $WHEAT
@@ -177,12 +177,12 @@ export default function Home() {
               <PixelIcon icon="coin" size={12} />
             </button>
             <a
-              href="https://clanker.world/clanker/0x91c37fff4e0d2cde13a099052f78b7841c0e1b07"
+              href="https://pump.fun/coin/4R5KQBuarwMXZB4hh4G3RdP16BUbVFgaEH92VmENpump"
               target="_blank"
               rel="noopener noreferrer"
               className="pixel-btn flex items-center gap-1 px-2 py-1.5"
               style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', fontSize: 9, textDecoration: 'none' }}
-              title="Buy $WHEAT on Clanker"
+              title="Buy $WHEAT on Pump.fun"
             >
               <PixelIcon icon="coin" size={10} />
               $WHEAT
