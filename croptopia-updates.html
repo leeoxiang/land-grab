@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Croptopia — Updates</title>
+<title>Croptopia — Build Journey + Launch</title>
 <style>
   body {
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -82,29 +82,314 @@
 </head>
 <body>
 
-<h1>Croptopia — Updates</h1>
-<p class="meta">Four update posts about <strong>Croptopia</strong>, a multiplayer Solana farming game at <a href="https://croptopia.world">croptopia.world</a>. Follow <a href="https://x.com/playCroptopia">@playCroptopia</a> on X. Click <strong>Copy</strong> on any post to grab it with formatting intact, then paste straight into Medium.</p>
+<h1>Croptopia — Build Journey + Launch</h1>
+<p class="meta">Four posts about building and launching <strong>Croptopia</strong>, a multiplayer Solana farming game at <a href="https://croptopia.world">croptopia.world</a>. First three are devlog entries from the build. Last one is the launch announcement. Click <strong>Copy</strong> on any post to grab it with formatting intact, then paste straight into Medium. Follow <a href="https://x.com/playCroptopia">@playCroptopia</a> on X.</p>
 
-<!-- ARTICLE 1 -->
+<!-- ARTICLE 1 — Build #1 -->
 <article id="article-1">
   <div class="article-header">
-    <h2>Croptopia Is Live on Solana</h2>
+    <h2>Building Croptopia, Part 1: Bolting a Game onto a Solana Wallet</h2>
     <button class="copy" data-target="article-1-content">Copy</button>
   </div>
   <div id="article-1-content">
+    <p class="meta">Croptopia · Devlog · 9 min read</p>
+
+    <p>Six months ago I decided to build a farming game where the land was real. By "real" I meant: you'd own it on Solana, you'd lock value into it on claim, and no server admin could ever evict you. That single decision is where everything else followed from.</p>
+
+    <p>This is the first of three devlog posts about how I built Croptopia. I'm writing them now, after mainnet, because I want to remember what was hard before I forget. The launch post comes last.</p>
+
+    <h3>The framework problem</h3>
+
+    <p>Most "web3 game" projects I've seen either ship a Unity WebGL build with a 20MB bundle that takes thirty seconds to load on cold cache, or they write everything in raw Canvas and end up with a glorified spreadsheet. Neither of those felt right for a top-down farming game that needed to feel snappy and look like an SNES title.</p>
+
+    <p>I picked <strong>Phaser 3</strong>. It's JavaScript-native, designed for 2D games, with a tile-based scene system that fits a 10×10 plot grid perfectly. The trade-off is that Phaser has zero opinions about anything else in your app — it wants the whole page.</p>
+
+    <p>I needed React for everything around the canvas — modals, wallet connection, leaderboards, tribes, market UI. Without React, all of that becomes manual DOM work. Without Phaser, the game world is a static grid. So the question became: can I get the two to coexist?</p>
+
+    <h3>First attempt: props and callbacks</h3>
+
+    <p>The naive approach is to mount Phaser inside a React component and pass callbacks down as props. Click a plot, the Phaser scene calls <code>onPlotClick(plotId)</code>, React opens a modal.</p>
+
+    <pre><code>function GameWorld({ onPlotClick, wallet }) {
+  const containerRef = useRef(null);
+
+  useEffect(() =&gt; {
+    const game = new Phaser.Game({
+      parent: containerRef.current,
+      scene: new WorldScene({ onPlotClick, wallet }),
+    });
+    return () =&gt; game.destroy(true);
+  }, []);
+
+  return &lt;div ref={containerRef} /&gt;;
+}</code></pre>
+
+    <p>This works for about thirty seconds. Then you realize the scene was constructed with the <em>first</em> value of <code>onPlotClick</code> and <code>wallet</code>. When React re-renders with new values, the scene doesn't know. Click a plot and the modal opens with the wrong wallet.</p>
+
+    <p>You can fix this by adding the props to the <code>useEffect</code> dependency array. But then Phaser tears down and rebuilds the entire game every time those values change. The world flickers. Sprites reload. It's unusable.</p>
+
+    <h3>Second attempt: event emitter</h3>
+
+    <p>I tried a pub/sub bus next. React subscribes, Phaser emits. The scene doesn't hold references to anything mutable — it fires <code>bus.emit('plot:click', plotId)</code> and trusts that whoever is listening will handle it.</p>
+
+    <p>This worked, technically. But debugging it was painful. Every event went through one channel. When something didn't fire, I had no idea whether the emitter was wrong, the subscriber was unmounted, or the event name was misspelled. I was adding <code>console.log</code> to a global event bus and grepping output.</p>
+
+    <p>I also kept tripping over React 18 strict mode's double-mount, where my subscriptions registered twice and modals opened twice. I "fixed" it with cleanup logic that worked in dev but broke in prod, where strict mode wasn't active. Two hours I'm not getting back.</p>
+
+    <h3>Third attempt: a global object on globalThis</h3>
+
+    <p>The solution I ended up with is the dumbest thing I could have done, and it's been bulletproof for months.</p>
+
+    <p>I put a single object on <code>globalThis</code> called <code>__cw</code> (Croptopia Wrapper). Phaser registers default no-op methods when the scene is created. React, when it mounts, replaces those methods with closures over current state. When state changes, React replaces the methods again. Phaser doesn't care, because the property lookup happens at call time.</p>
+
+    <pre><code>// In WorldScene.create()
+globalThis.__cw = {
+  wallet: null,
+  onClick: (plotId) =&gt; {},
+  focusPlot: (plotId) =&gt; {},
+  refreshAnimals: (plotId, type) =&gt; {},
+  refreshFarmers: (plotId, count) =&gt; {},
+  // ...
+};
+
+// In React
+useEffect(() =&gt; {
+  if (!globalThis.__cw) return;
+  globalThis.__cw.wallet = wallet;
+  globalThis.__cw.onClick = (plotId) =&gt; {
+    setSelectedPlot(plotId);
+    setModalOpen(true);
+  };
+}, [wallet]);</code></pre>
+
+    <p>That's it. No event bus, no provider, no subscription model. When the Phaser scene wants to tell React something happened, it calls <code>globalThis.__cw.onClick(plotId)</code>. When React wants to tell Phaser to spawn a cow, it calls <code>globalThis.__cw.refreshAnimals(plotId, 'cow')</code>. Both directions go through the same flat object.</p>
+
+    <p>The reason it works: property lookup is lazy. Phaser doesn't capture a reference to the function — it captures a reference to the object and looks up the function each call. When React replaces the function, Phaser sees the new one immediately. And there's no subscription model, so nothing to register, clean up, or double-fire.</p>
+
+    <blockquote>If your bridge between two systems is simple enough to fit on a sticky note, you can debug it. If it isn't, you can't.</blockquote>
+
+    <h3>The accidental affordance</h3>
+
+    <p>Because the bridge is just a global, I can poke at it from the browser console. When I'm debugging a sprite issue, I open devtools and type <code>__cw.refreshAnimals(42, 'cow')</code> and watch a cow appear. When I'm testing the plot focus animation, I type <code>__cw.focusPlot(7)</code> and the camera pans.</p>
+
+    <p>I don't need a debug menu in the game UI. I don't need a hidden hotkey. The bridge is the debug menu. This is the kind of unplanned benefit you only get from doing the dumb thing first.</p>
+
+    <p>Next post: the day I realized free plots were going to kill the economy, and how the stake mechanic saved it.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 2 — Build #2 -->
+<article id="article-2">
+  <div class="article-header">
+    <h2>Building Croptopia, Part 2: The Day Plots Became Stakes</h2>
+    <button class="copy" data-target="article-2-content">Copy</button>
+  </div>
+  <div id="article-2-content">
+    <p class="meta">Croptopia · Devlog · 10 min read</p>
+
+    <p>The first playable version of Croptopia let anyone claim a plot for free. You'd hit a button, sign one transaction, and the plot was yours forever. That version played terribly. This is the post about why, and how I fixed it.</p>
+
+    <h3>The free-claim trap</h3>
+
+    <p>The original design was inspired by what I'd seen in other on-chain games: claim a free plot, then pay for upgrades, fertilizers, animals, whatever. The plot itself was the on-ramp. I figured the economy could happen in the layer above the land.</p>
+
+    <p>I ran a closed playtest with eight wallets. Within forty-five minutes, three of those wallets had claimed seventy of the hundred plots — and were sitting on them, ignoring the game. They weren't farming. They weren't selling. They were just holding empty land, waiting to see if it would be worth anything later. The other five players had nowhere to claim. The world looked dead.</p>
+
+    <p>This is the well-known free-claim trap. If a thing costs nothing to acquire, the optimal strategy is to grab as much of it as you can on day one and figure out the rest later. I'd built a game that rewarded squatting.</p>
+
+    <h3>The pivot</h3>
+
+    <p>The fix was obvious in hindsight: make holding a plot cost something. Make leaving a plot cost more.</p>
+
+    <p>I introduced a <strong>USDC stake</strong> on claim. To grab a Bronze plot, you lock 1 USDC in the protocol. Silver costs 5. Gold costs 15. Diamond costs 50. The stake stays locked for as long as you hold the plot — it doesn't get burned, it isn't a fee, it's collateral. If you transfer the plot to someone else, your stake unlocks; the new owner posts a new one.</p>
+
+    <p>The breaking change came with the abandon mechanic. If you walk away — sign the <code>abandon_plot</code> transaction yourself — your stake doesn't return to you. <strong>Half burns. Half goes to the protocol treasury.</strong></p>
+
+    <pre><code>pub fn abandon_plot(ctx: Context&lt;AbandonPlot&gt;) -&gt; Result&lt;()&gt; {
+    let plot = &amp;mut ctx.accounts.plot;
+    require!(plot.owner == ctx.accounts.player.key(), ErrorCode::NotOwner);
+
+    let stake    = plot.locked_amount;
+    let burn     = stake / 2;
+    let treasury = stake - burn;
+
+    transfer_from_vault(&amp;ctx, ctx.accounts.burn_vault,     burn)?;
+    transfer_from_vault(&amp;ctx, ctx.accounts.treasury_vault, treasury)?;
+
+    plot.owner         = Pubkey::default();
+    plot.locked_amount = 0;
+    Ok(())
+}</code></pre>
+
+    <p>That single function — <code>abandon_plot</code> — is the line that made Croptopia feel like a game with real stakes instead of a clicker with NFTs.</p>
+
+    <h3>Calibrating the ladder</h3>
+
+    <p>1 / 5 / 15 / 50 USDC didn't come from nowhere. I needed the bottom rung to be low enough that someone could try the game on a whim, and the top rung to be high enough that whales actually had to commit. The exponential ladder (roughly 5×, 3×, 3.3×) gives each tier a noticeably different commitment level.</p>
+
+    <p>I also added a <strong>5-plot cap per wallet</strong>, enforced in the program:</p>
+
+    <pre><code>require!(player.plot_count &lt; MAX_PLOTS_PER_WALLET, ErrorCode::TooManyPlots);</code></pre>
+
+    <p>Five plots is enough to build a serious farm. It isn't enough to corner the market. Without this cap, a single 250-USDC wallet could buy every Diamond plot and force everyone else into Bronze permanently.</p>
+
+    <h3>The second playtest</h3>
+
+    <p>Same eight wallets, same hour. Different game.</p>
+
+    <p>The hoarders from the first playtest didn't show up. The two who did try to grab multiple Diamond plots stopped at one or two — 50 USDC felt different from "click to claim." The Diamond plots filled within forty minutes, but spread across five different wallets. Silver was the middle-ground sweet spot. Bronze sold out quickly because new players used it as an on-ramp.</p>
+
+    <p>Within an hour, the world had:</p>
+
+    <ul>
+      <li>Eight active farmers — every player engaged</li>
+      <li>Five Diamond plots, each held by a different wallet</li>
+      <li>Three abandons (people who claimed Bronze, didn't like it, walked away — collectively burning 1.5 USDC and feeding 1.5 to treasury)</li>
+      <li>Active trading between players because plots felt scarce</li>
+    </ul>
+
+    <p>The same group of testers behaved completely differently because the asset finally had weight.</p>
+
+    <h3>Why this works</h3>
+
+    <p>A stake does what free claims can't: it filters. Anyone willing to lock 50 USDC into a Diamond plot has decided they actually believe in the game. The market for plots becomes a market for conviction, not a queue of wallet-spam.</p>
+
+    <p>The abandon-burn isn't punishment. It's the cost of being wrong about your conviction. If you commit 50 USDC to a Diamond plot and decide the game isn't for you, you lose 50 USDC. That's a real signal. The system reads it as <em>this slot just freed up for someone who'll use it.</em></p>
+
+    <blockquote>The game's design didn't change. The cost of holding changed. The behavior followed.</blockquote>
+
+    <p>Next post: how I built the order book that lets players make their own prices, and the self-match bug that almost broke launch.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 3 — Build #3 -->
+<article id="article-3">
+  <div class="article-header">
+    <h2>Building Croptopia, Part 3: An Order Book in 100 Lines of Rust</h2>
+    <button class="copy" data-target="article-3-content">Copy</button>
+  </div>
+  <div id="article-3-content">
+    <p class="meta">Croptopia · Devlog · 9 min read</p>
+
+    <p>Once players had plots and harvests, they wanted to trade. The first version of Croptopia had a fixed-price NPC vendor — sell wheat for 2 USDC, magic herbs for 50, take it or leave it. It worked. It was also boring.</p>
+
+    <p>This is the post about ripping that out and replacing it with a real on-chain order book. And the bug I shipped, accidentally, on day one.</p>
+
+    <h3>Why fixed prices were wrong</h3>
+
+    <p>Fixed-price vendors are tempting because they're simple. You write a constant, you check inventory, you transfer USDC, you're done. No matching engine, no escrow, no state.</p>
+
+    <p>The problem is that fixed prices flatten the world. Wheat doesn't get more valuable when there's a Golden Hour rally. Magic herbs don't spike when a tribe goes raiding. The economy can't react to itself. Every commodity prices at exactly what the NPC says it prices at, forever.</p>
+
+    <p>What I wanted was: <strong>let players set the price.</strong> Place a bid for 50 wheat at 1.8 USDC each. Place an ask for 30 wheat at 2.1. When the books cross, the protocol settles the trade. The market discovers its own clearing price every minute.</p>
+
+    <h3>The Order account</h3>
+
+    <p>The shape ended up small. Each order is one Anchor account:</p>
+
+    <pre><code>#[account]
+pub struct Order {
+    pub maker:      Pubkey,
+    pub item:       ItemType,        // Wheat | Corn | Egg | Milk | ...
+    pub side:       Side,            // Bid | Ask
+    pub quantity:   u64,
+    pub remaining:  u64,
+    pub price:      u64,             // USDC per unit
+    pub status:     OrderStatus,
+    pub created_at: i64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
+pub enum Side         { Bid, Ask }
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy)]
+pub enum OrderStatus  { Open, Filled, Cancelled }</code></pre>
+
+    <p>When you place a sell order (an ask), the program locks your wheat in an item escrow account. When you place a buy order (a bid), the program locks your USDC. The escrows are PDAs; only the program can move tokens out, and only when the matching engine fires.</p>
+
+    <h3>The matching engine</h3>
+
+    <p>The match logic is straightforward in shape, ruthless in execution. Walk asks lowest-first. Walk bids highest-first. While the best bid is at or above the best ask, fill at the ask price. Stop when the books cross or one side runs out.</p>
+
+    <pre><code>pub fn match_book(ctx: &amp;Context&lt;PlaceOrder&gt;, item: ItemType) -&gt; Result&lt;()&gt; {
+    let mut asks = best_asks(item, 10)?;
+    let mut bids = best_bids(item, 10)?;
+
+    for ask in asks.iter_mut() {
+        for bid in bids.iter_mut() {
+            if bid.price &lt; ask.price        { break; }
+            if bid.maker == ask.maker        { continue; }   // self-match guard
+
+            let qty   = ask.remaining.min(bid.remaining);
+            let price = ask.price;
+            let gross = qty * price;
+            let fee   = gross * 25 / 1000;       // 2.5%
+            let net   = gross - fee;
+
+            settle_payment(ctx, ask.maker, net, fee)?;
+            settle_delivery(ctx, bid.maker, item, qty)?;
+
+            ask.remaining -= qty;
+            bid.remaining -= qty;
+            if ask.remaining == 0 { ask.status = OrderStatus::Filled; }
+            if bid.remaining == 0 { bid.status = OrderStatus::Filled; }
+            if ask.remaining == 0 { break; }
+        }
+    }
+    Ok(())
+}</code></pre>
+
+    <p>About a hundred lines once you count the helpers. The 2.5% fee splits between treasury and burn vault — same pattern as the abandon mechanic. The patient seller wins ties (we fill at the ask price, not the midpoint, which means a buyer who shows up later doesn't move the price up just by being there).</p>
+
+    <h3>The bug I shipped</h3>
+
+    <p>You'll notice this line:</p>
+
+    <pre><code>if bid.maker == ask.maker { continue; }   // self-match guard</code></pre>
+
+    <p>That comment was not in the original commit. I added it after a wallet fake-pumped the daily volume by 4,000 USDC in twenty minutes by placing matching bids and asks against itself.</p>
+
+    <p>Here's what happened: a player figured out that without a self-match guard, they could place a 100-wheat ask at 2.0 USDC and a 100-wheat bid at 2.0 USDC from the same wallet. The matching engine would happily fill them against each other. They'd pay the 2.5% fee, but the volume would show up on the public board.</p>
+
+    <p>The "trade" was: ask escrow holds 100 wheat → bid escrow holds 200 USDC → match fires → wallet gets 200 USDC × 0.975 = 195 USDC back, and 100 wheat back. Net cost: 5 USDC. Net benefit: 200 USDC of fake volume on the public chart.</p>
+
+    <p>I noticed it on day two when the volume looked suspicious. The fix was one line.</p>
+
+    <pre><code>if bid.maker == ask.maker { continue; }</code></pre>
+
+    <p>Self-match guards are basic order book hygiene. I shipped without one because I'd never built an order book before. Live and learn. The wallet that exploited it didn't gain anything material (the volume metric doesn't gate anything) but it would have, if anyone had built a leaderboard ranked by volume. The patch went out three hours after I noticed.</p>
+
+    <h3>What the order book does for the world</h3>
+
+    <p>Wheat doesn't have a fixed price anymore. It has the price the highest current bid is willing to pay. Magic herbs spike when supply dries up and crater when a Diamond plot dumps inventory. Players watch the book. Tribe leaders coordinate buys. Alliances trade against each other.</p>
+
+    <p>The market makes itself. I wrote the rules. The players write the prices.</p>
+
+    <blockquote>The hardest part of designing an economy is getting out of the way once you've set the rules.</blockquote>
+
+    <p>Next post: it's launch day. Croptopia is live.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 4 — Launch -->
+<article id="article-4">
+  <div class="article-header">
+    <h2>Croptopia Is Live on Solana</h2>
+    <button class="copy" data-target="article-4-content">Copy</button>
+  </div>
+  <div id="article-4-content">
     <p class="meta">Croptopia · Launch · 6 min read</p>
 
-    <p>The first plot was claimed at 3:42 PM UTC. The owner staked one USDC into a Bronze plot at coordinate (4, 7), and the world stopped being theoretical.</p>
+    <p>Six months. Three pivots. One self-match bug. <strong>Croptopia is live on Solana.</strong></p>
 
-    <p>After six months of building, <strong>Croptopia</strong> is live on Solana. The protocol is deployed, the world is open, and the first farmers are already farming. If you've been waiting for the "go" signal, this is it.</p>
+    <p>The protocol is deployed, the world is open, and the first farmers are already farming. If you've been following the devlog posts about the React-Phaser bridge, the stake mechanic, and the order book — this is the post where it all goes live.</p>
 
-    <h3>What it is, in three sentences</h3>
+    <h3>What it is, one more time</h3>
 
-    <p>100 farming plots on Solana, each one a USDC-staked position you actually own. Plant crops, raise animals, defend your land, trade everything on an on-chain order book. The world is finite, the stakes are real, and the protocol primitives are written in Anchor and live on mainnet right now.</p>
+    <p>100 farming plots on Solana, each one a USDC-staked position you actually own. Plant crops, raise animals, defend your land, trade everything on an on-chain order book. The world is finite, the stakes are real, the protocol code is auditable in the public repo.</p>
 
     <h3>The world</h3>
 
-    <p>The map is fixed at 100 plots, distributed across four tiers. They don't mint. They don't expand. They don't airdrop. Once they're claimed, they're claimed.</p>
+    <p>Fixed at 100 plots across four tiers. They don't mint, don't airdrop, don't expand. Once they're claimed, they're claimed.</p>
 
     <table>
       <tr><th>Tier</th><th>Supply</th><th>Stake</th><th>Yield</th><th>Crop / Animal Slots</th></tr>
@@ -114,240 +399,46 @@
       <tr><td>Diamond</td><td>5</td><td>50 USDC</td><td>3.0×</td><td>10 / 5</td></tr>
     </table>
 
-    <p>Each wallet is capped at five plots. The cap is enforced at the program level, not the UI — try to grab a sixth and the transaction reverts.</p>
+    <p>Each wallet is capped at five plots. The cap is enforced at the program level, not the UI.</p>
 
     <h3>The stake</h3>
 
-    <p>USDC is the unit of account. When you claim a plot, your stake is locked into a per-plot vault PDA, controlled by the Croptopia program. The vault holds it for as long as you hold the plot.</p>
-
-    <p>Walk away — abandon the plot — and your stake doesn't come back. Half burns. Half goes to the protocol treasury. The plot returns to world supply.</p>
+    <p>USDC is the unit of account. When you claim a plot, your stake locks into a per-plot vault PDA controlled by the Croptopia program. The vault holds it for as long as you hold the plot. Walk away and half burns, half goes to the treasury. The plot returns to world supply.</p>
 
     <blockquote>Land you don't believe in, you don't claim. Land you do, you defend.</blockquote>
 
     <h3>The token</h3>
 
-    <p><strong>$CROP</strong> is the community token, live on Pump.fun on Solana. It isn't the unit of account for the game (USDC is) — it's a coordination token, used for snapshot eligibility on upcoming drops (most importantly the free Farmer NFT mint, more on that next week).</p>
+    <p><strong>$CROP</strong> is the community token, live on Pump.fun. It isn't the unit of account for the game (USDC is) — it's a coordination token, used for snapshot eligibility on upcoming drops. The biggest one is the free Farmer NFT mint coming next month: 1,000 unique on-chain workers, free for $CROP holders, full details ahead of the snapshot block.</p>
 
     <h3>How to start</h3>
 
     <ol>
       <li>Connect a Solana wallet — Phantom, Backpack, and Solflare all work.</li>
-      <li>Open the map at <a href="https://croptopia.world">croptopia.world</a>, pick a plot, claim it. You'll sign one transaction to lock your stake.</li>
-      <li>Plant something. Wheat on every Bronze plot is a fine starting move. Harvest in 5 minutes. Sell on the order book. Iterate.</li>
+      <li>Open <a href="https://croptopia.world">croptopia.world</a>, pick a plot, claim it. One transaction.</li>
+      <li>Plant something. Wheat on every Bronze plot is a fine starting move. Harvest in five minutes. Sell on the order book. Iterate.</li>
     </ol>
 
-    <h3>What's next</h3>
+    <h3>The roadmap</h3>
 
     <ul>
-      <li>Farmer NFTs — free mint for $CROP holders (next month)</li>
-      <li>On-chain raid mechanic — steal yield from your neighbors</li>
-      <li>Plot leasing — rent out yield rights without selling the plot</li>
-      <li>Cross-tribe coordination contracts</li>
+      <li><strong>This month:</strong> Farmer NFTs (free mint for $CROP holders)</li>
+      <li><strong>Next month:</strong> On-chain raid mechanic with defender stacking and asynchronous replays</li>
+      <li><strong>Q4:</strong> Plot leasing (rent yield rights without selling) and cross-tribe coordination contracts</li>
+      <li><strong>2027:</strong> Mobile companion app, cosmetic plot upgrade NFTs</li>
     </ul>
 
-    <p>Five diamonds left as of writing this. Find yours at <a href="https://croptopia.world">croptopia.world</a>. Updates on <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
-  </div>
-</article>
+    <p>Each feature ships when the contracts are stable, not on a calendar.</p>
 
-<!-- ARTICLE 2 -->
-<article id="article-2">
-  <div class="article-header">
-    <h2>Farmer NFTs Drop Soon — Free Mint for $CROP Holders</h2>
-    <button class="copy" data-target="article-2-content">Copy</button>
-  </div>
-  <div id="article-2-content">
-    <p class="meta">Croptopia · Feature Drop · 7 min read</p>
+    <h3>Thank you</h3>
 
-    <p>Croptopia's first NFT collection is coming. We're not selling it. It's free for $CROP holders.</p>
+    <p>To the closed-test players who showed me the free-claim hoarding bug. To the wallet that exploited my missing self-match guard on day two (you didn't gain anything, but you saved me from shipping it to mainnet). To the early $CROP holders who put real money behind a project that didn't exist yet. You're the reason the snapshot is going to be biased toward you, and you should be.</p>
 
-    <p>The Farmer NFTs are the first major addition to the protocol since mainnet launch. They're not a side game, not a separate marketplace, not a cosmetic. They plug directly into the existing plot-and-yield system on-chain, and they raise the yield ceiling for every farmer who holds one.</p>
+    <p>Five diamonds at launch. Find yours at <a href="https://croptopia.world">croptopia.world</a>.</p>
 
-    <h3>What they are</h3>
+    <p>Devlog and ship updates on <a href="https://x.com/playCroptopia">@playCroptopia</a>. Long-form on <a href="https://medium.com/@Croptopia">Medium</a>. The source is in the public repo at <a href="https://github.com/playCroptopia/Croptopia">github.com/playCroptopia/Croptopia</a>.</p>
 
-    <p>One thousand procedurally generated on-chain farmers. Each one is a real Anchor account on Solana — not a JPEG pointing at IPFS. Equip a farmer to one of your plots and their stats stack on top of everything else you've earned (tier, upgrade, tribe, alliance, Golden Hour).</p>
-
-    <p>Each Farmer NFT has four traits:</p>
-
-    <ul>
-      <li><strong>Speed</strong> — multiplier on harvest cadence. Faster farmers cycle through more harvests per hour.</li>
-      <li><strong>Slot bonus</strong> — extra crop and/or animal slots on the plot they work.</li>
-      <li><strong>Yield boost</strong> — a flat percentage that multiplies into the existing yield stack.</li>
-      <li><strong>Rarity</strong> — Common / Uncommon / Rare / Mythic, on a weighted distribution.</li>
-    </ul>
-
-    <p>The rarity distribution is roughly 60 / 25 / 12 / 3. The Mythics — 30 farmers in total — roll the highest stat ranges. A Mythic on a Diamond plot with a level-4 upgrade, ten-member tribe leadership, alliance pact, and Golden Hour pushes the harvest multiplier well past 15×.</p>
-
-    <h3>How the free mint works</h3>
-
-    <p>We're taking a wallet snapshot of $CROP holders at a block height to be announced ~48 hours ahead of the mint. Wallets holding above a minimum threshold (announced with the snapshot block) qualify for one free mint, regardless of how much above the threshold they hold.</p>
-
-    <p>One mint per wallet. No gas fees beyond the Solana network fee on the mint transaction. After the free window closes, any remaining Farmer NFTs from the 1,000 supply will be released to a public mint priced in $CROP.</p>
-
-    <h3>Why we're doing it this way</h3>
-
-    <p>The people holding $CROP through launch are the ones who chose to align with the protocol when there was no obvious reason to. They paid attention, they read the docs, they bought the ticker. The free mint is alignment, not a giveaway — every Farmer NFT in active use across the world tightens harvest density, which pumps order book volume, which feeds back into $CROP demand and treasury revenue.</p>
-
-    <p>If we sold the Farmer NFTs to the highest bidder we'd raise more money short-term and break the alignment loop. We'd rather have $CROP holders feel the upside than the treasury fatten by a one-time spike.</p>
-
-    <h3>How to qualify</h3>
-
-    <ol>
-      <li>Hold $CROP in a Solana wallet you control. CEX accounts (Binance, Coinbase, etc.) won't snapshot — withdraw to self-custody before the announced block.</li>
-      <li>Keep holding through the snapshot. Don't sell, don't bridge, don't move to a wrapper.</li>
-      <li>Watch <a href="https://x.com/playCroptopia">@playCroptopia</a> for the snapshot block announcement.</li>
-    </ol>
-
-    <p>Snapshot date is targeted for the end of this month. We'll post the exact block 48 hours ahead so you have time to prepare. Don't miss it.</p>
-
-    <p>Get your $CROP on Pump.fun. Plot status, Farmer NFT updates, and snapshot timing all post first on <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
-  </div>
-</article>
-
-<!-- ARTICLE 3 -->
-<article id="article-3">
-  <div class="article-header">
-    <h2>State of the Realm — Week 1 in Croptopia</h2>
-    <button class="copy" data-target="article-3-content">Copy</button>
-  </div>
-  <div id="article-3-content">
-    <p class="meta">Croptopia · Devlog · 8 min read</p>
-
-    <p>The first week of mainnet is in the books. Here's what happened, in numbers.</p>
-
-    <h3>Plots claimed: 73 of 100</h3>
-
-    <table>
-      <tr><th>Tier</th><th>Claimed</th><th>Remaining</th></tr>
-      <tr><td>Bronze</td><td>50</td><td>0 (sold out day 2)</td></tr>
-      <tr><td>Silver</td><td>22</td><td>8</td></tr>
-      <tr><td>Gold</td><td>1</td><td>14</td></tr>
-      <tr><td>Diamond</td><td>4</td><td>1</td></tr>
-    </table>
-
-    <p>Bronze plots sold out within 48 hours — faster than we expected, mostly because new wallets used the 1-USDC entry tier to take a free look at the world. Silver is steady. Gold is the sleeper — most farmers are waiting to see Silver yields stabilize before committing 15 USDC.</p>
-
-    <p>Diamonds are the headline. One went in the first hour to a wallet that's already upgraded it to level 4 and started fishing the pond. The first Diamond owner named the plot <em>FrostHearth</em>. Three more diamonds followed over the next four days. <strong>One diamond remains.</strong></p>
-
-    <h3>Markets: 12,400 USDC in order-book volume</h3>
-
-    <p>The crop order book processed 1,837 fills across the first seven days, totaling about 12,400 USDC in volume. Most-traded items:</p>
-
-    <ul>
-      <li>Wheat — 61% of fills (the staple)</li>
-      <li>Eggs — 14%</li>
-      <li>Magic Herbs — 9% (low fill count, highest USDC per fill)</li>
-      <li>Everything else — 16%</li>
-    </ul>
-
-    <p>The plot exchange saw 6 trades totaling 287 USDC. The biggest single sale: a level-3 Gold plot for 75 USDC — a 5× return on the original 15 USDC claim cost. The seller had owned it for three days.</p>
-
-    <h3>Social: 14 tribes, 22 alliances</h3>
-
-    <p>Tribes formed faster than we expected. By end of day 4, fourteen had registered. The largest is <em>WheatPack</em> at nine members, one shy of the ten-cap. Three tribes are at the leader-cap maximum yield bonus (+45% for the leader on every harvest).</p>
-
-    <p>Alliances are even more popular. Twenty-two were created in week one, with eight of them filling all five seats. Lightweight pacts that just stack a flat +5% yield turn out to be exactly the right amount of social commitment for most farmers.</p>
-
-    <h3>Tokenomics: 1,170 USDC burned</h3>
-
-    <p>The burn-on-abandon mechanic has triggered three times. Three farmers chose to walk away from their plots — sending 7.5 USDC to the burn vault and 7.5 to treasury between them. Order book fees added another 310 USDC to the treasury and 31 USDC to the burn.</p>
-
-    <p>Treasury balance at end of week one: 2,340 USDC. Lifetime burn: 1,170 USDC. Plus 240 $CROP burned via the optional contribution path.</p>
-
-    <h3>Community highlights</h3>
-
-    <ul>
-      <li>A Diamond plot owner coordinated a Golden Hour rally with their 9-member tribe — every member harvested within the same one-hour window, posting 1.4× normal density. Screenshots flooded Discord.</li>
-      <li>One alliance executed a coordinated wheat dump mid-day, crashing the order book by 30% in under an hour. Another alliance — apparently watching — bought the bottom and rode it back up by close of trading.</li>
-      <li>The current leaderboard #1 holds 4 Silver plots and 1 Gold, all at level 3+. Score: 130.</li>
-    </ul>
-
-    <h3>What's coming next week</h3>
-
-    <ul>
-      <li><strong>Farmer NFT snapshot</strong> — block height TBA, 48-hour heads up on Twitter</li>
-      <li><strong>Order book API</strong> — public read endpoint for indexers and bots</li>
-      <li><strong>Mobile-friendly plot management</strong> — in test, opens to everyone next week</li>
-    </ul>
-
-    <p>27 plots are still up for grabs as of writing this. <strong>1 Diamond. 14 Gold. 8 Silver.</strong> Bronze is gone forever.</p>
-
-    <p>Stake yours at <a href="https://croptopia.world">croptopia.world</a>. State-of-realm updates land weekly on <a href="https://x.com/playCroptopia">@playCroptopia</a> and <a href="https://medium.com/@Croptopia">Medium</a>.</p>
-  </div>
-</article>
-
-<!-- ARTICLE 4 -->
-<article id="article-4">
-  <div class="article-header">
-    <h2>The Croptopia Roadmap — What's Next After Mainnet</h2>
-    <button class="copy" data-target="article-4-content">Copy</button>
-  </div>
-  <div id="article-4-content">
-    <p class="meta">Croptopia · Roadmap · 7 min read</p>
-
-    <p>Mainnet was the start, not the finish. Here's what we're shipping over the next six months.</p>
-
-    <p>Each item below builds on what's already on-chain. No external infrastructure, no centralized oracles, no off-chain match servers. If something can't be expressed as Anchor instructions and PDAs, it's not on this list.</p>
-
-    <h3>This month — Farmer NFTs</h3>
-
-    <p>One thousand procedurally generated on-chain farmers. Free mint for $CROP holders via snapshot. Equip them to a plot for stacked yield, slot, and speed bonuses. Full details in last week's drop post.</p>
-
-    <p>This is the first feature ship after mainnet. The contract code is already in <code>programs/croptopia/src/instructions.rs</code> in the public repo — readable, auditable, and on-track for end-of-month.</p>
-
-    <h3>Next month — On-Chain Raid Mechanic</h3>
-
-    <p>The most-requested feature since launch. Croptopia's plot model has always allowed for asymmetric attacks; we just hadn't shipped the raid instruction yet. Coming next:</p>
-
-    <ul>
-      <li><strong>Steal yield</strong> — pay a fee to raid a target plot. If successful, you skim a percentage of their pending harvest.</li>
-      <li><strong>Defender stacking</strong> — hire on-chain goblin NPCs to defend your plots. Multiple goblins multiply the defense bonus.</li>
-      <li><strong>Asynchronous raid replays</strong> — you don't have to be online when you're raided. The raid plays out as a single atomic transaction; you log in to find out what happened.</li>
-      <li><strong>Cool-downs</strong> — each attacker has a 1-hour cool-down between raids on the same target. No infinite-spam.</li>
-    </ul>
-
-    <p>The raid takes a 5% protocol fee. 80% of the loot goes to the attacker. 15% goes to the burn vault. The math is intentionally tilted to keep raiding profitable for skilled attackers without making it free.</p>
-
-    <h3>Q4 — Plot Leasing</h3>
-
-    <p>Rent out the yield rights to your plot without selling ownership. The lessor keeps the underlying stake and the right to sell or transfer; the lessee gets the harvests during the lease window.</p>
-
-    <p>Lease durations: 7, 30, or 90 days. The lessor receives a one-time payment plus a flat % cut of the lessee's harvest revenue. The lease itself is an on-chain account, atomically settled and non-cancellable mid-term.</p>
-
-    <p>This is for whales who want passive yield without managing slots, and for new players who want to farm without 50 USDC of upfront stake.</p>
-
-    <h3>Q4 — Cross-Tribe Coordination Contracts</h3>
-
-    <p>Right now, tribes operate independently. Each one has its own leader, its own ten-member cap, its own bonuses. There's no on-chain way for two tribes to formally coordinate.</p>
-
-    <p>Cross-tribe pacts change that. Two tribes can lock USDC into a shared pact account; both tribes' members receive a flat bonus during the pact's lifetime. The bonus stacks on top of their existing tribe and alliance bonuses. Pact lifetimes are 30-day minimums.</p>
-
-    <p>This lets large communities federate without merging — keep your own leadership, your own internal coordination, just add a temporary umbrella when you need it.</p>
-
-    <h3>2027 — Mobile Companion App</h3>
-
-    <p>Phone-first plot management. Push notifications for harvest cycles, Golden Hour windows, raid alerts. Solana wallet integration via the Mobile Wallet Adapter standard. iOS first, Android shortly after.</p>
-
-    <p>The mobile app isn't a port of the web client — it's a complementary surface focused on the things that benefit from being one tap away (harvest, defend, sell). The full canvas-based game stays on web.</p>
-
-    <h3>2027 — Plot Customization NFTs</h3>
-
-    <p>Visual upgrades for your plot. Custom buildings, paths, decorations, weather effects. Cosmetic only — they don't affect stats. Tradeable on the existing plot exchange.</p>
-
-    <p>The point is identity. A Diamond plot at level 4 is already valuable; a Diamond plot at level 4 with a custom Japanese garden and a snow-effect overlay is unique. We want owners to feel ownership beyond the contract account.</p>
-
-    <h3>How we prioritized this</h3>
-
-    <p>The roadmap above is in order of ship. Each feature meets three criteria:</p>
-
-    <ol>
-      <li>It uses existing on-chain primitives (no new infrastructure layers).</li>
-      <li>It rewards $CROP holders or active farmers, not idle capital.</li>
-      <li>It deepens the loop — more reasons to log in, more reasons to hold, more reasons to defend.</li>
-    </ol>
-
-    <p>Each ships when it's stable, not on a calendar. Dates above are targets, not promises. You'll see the contract code in the public repo before each goes live on mainnet.</p>
-
-    <p>Hold $CROP for free Farmer NFT mint eligibility. Follow ship dates on <a href="https://x.com/playCroptopia">@playCroptopia</a>. The next six months are going to be busy.</p>
+    <p>See you in the world.</p>
   </div>
 </article>
 
