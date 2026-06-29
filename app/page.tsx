@@ -16,7 +16,7 @@ const GameCanvas = dynamic(() => import('@/components/game/GameCanvas'), { ssr: 
 const SOCIAL = [
   {
     label: 'GitHub',
-    href:  'https://github.com/alexinbinary/WheatWorld',
+    href:  'https://github.com/playCroptopia',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983ebadee1a5bb66150c566_69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
@@ -31,7 +31,7 @@ const SOCIAL = [
   },
   {
     label: 'Medium',
-    href:  'https://medium.com/@WheatWorld',
+    href:  'https://medium.com/@Croptopia',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/6983eb56f1ca3d355dfdf898_medium.png',
   },
 ]

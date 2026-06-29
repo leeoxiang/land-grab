@@ -3,7 +3,7 @@ import './globals.css'
 import SolanaWalletProvider from '@/components/WalletProvider'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://thewheat.world'),
+  metadataBase: new URL('https://croptopia.world'),
   title: 'Croptopia — Solana Farming Game',
   description: 'Claim plots, grow crops, raise animals, and raid your neighbours. A competitive farming game on Solana.',
   openGraph: {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     description: 'Claim plots, grow crops, raise animals, and raid your neighbours.',
     type:        'website',
     siteName:    'Croptopia',
-    url:         'https://thewheat.world',
+    url:         'https://croptopia.world',
   },
   twitter: {
     card:        'summary',
