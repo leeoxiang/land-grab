@@ -26,7 +26,7 @@ const SOCIAL = [
   },
   {
     label: 'Twitter',
-    href:  'https://x.com/TheWheatWorld',
+    href:  'https://x.com/playCroptopia',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cba0db485064d0267ca_68d5c1872568958fd78018bb_twitter.png',
   },
   {

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Wheat.game — Articles</title>
+<title>Croptopia — Articles</title>
 <style>
   body {
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -79,19 +79,19 @@
 </head>
 <body>
 
-<h1>Wheat.game — Articles</h1>
-<p class="meta">Three articles about <strong>Wheat.game</strong>, a multiplayer Solana farming game at <a href="https://thewheat.world">thewheat.world</a>. Follow <a href="https://x.com/TheWheatWorld">@TheWheatWorld</a> on X. Click <strong>Copy</strong> on any article to grab it with formatting intact, then paste straight into Medium.</p>
+<h1>Croptopia — Articles</h1>
+<p class="meta">Three articles about <strong>Croptopia</strong>, a multiplayer Solana farming game at <a href="https://thewheat.world">thewheat.world</a>. Follow <a href="https://x.com/playCroptopia">@playCroptopia</a> on X. Click <strong>Copy</strong> on any article to grab it with formatting intact, then paste straight into Medium.</p>
 
 <!-- ARTICLE 1 -->
 <article id="article-1">
   <div class="article-header">
-    <h2>Wheat.game Plots Are Stakes, Not Listings</h2>
+    <h2>Croptopia Plots Are Stakes, Not Listings</h2>
     <button class="copy" data-target="article-1-content">Copy</button>
   </div>
   <div id="article-1-content">
-    <p class="meta">Wheat.game · 8 min read</p>
+    <p class="meta">Croptopia · 8 min read</p>
 
-    <p>The first thing to understand about <strong>Wheat.game</strong> is that a plot is not a listing. It isn't a row in a database with a price next to it. It's a stake — a non-custodial position in the protocol, held open by locked USDC and closed only when you transfer it or walk away.</p>
+    <p>The first thing to understand about <strong>Croptopia</strong> is that a plot is not a listing. It isn't a row in a database with a price next to it. It's a stake — a non-custodial position in the protocol, held open by locked USDC and closed only when you transfer it or walk away.</p>
 
     <p>The world is finite. There are exactly 100 plots, distributed across four tiers, ever. They don't mint. They don't airdrop. They don't get added in the next season. Once they're claimed, they're claimed, and the only way more come back to the market is when somebody decides to abandon theirs.</p>
 
@@ -99,7 +99,7 @@
 
     <h3>The plot account</h3>
 
-    <p>Every plot in Wheat.game is a Solana program-derived account, seeded by its plot ID. Once derived, the address is permanent — you can't fork the world, and you can't squat on plots you don't own.</p>
+    <p>Every plot in Croptopia is a Solana program-derived account, seeded by its plot ID. Once derived, the address is permanent — you can't fork the world, and you can't squat on plots you don't own.</p>
 
     <pre><code>#[account]
 pub struct Plot {
@@ -182,7 +182,7 @@ pub enum PlotTier {
 
     <h3>Forfeit on abandon</h3>
 
-    <p>This is the part most farming games get wrong. They let you walk away clean. Wheat.game doesn't.</p>
+    <p>This is the part most farming games get wrong. They let you walk away clean. Croptopia doesn't.</p>
 
     <p>When you abandon a plot, your stake doesn't return to your wallet. Half is burned. Half goes to the protocol treasury. The plot returns to the world supply, available for the next farmer.</p>
 
@@ -206,13 +206,13 @@ pub enum PlotTier {
     Ok(())
 }</code></pre>
 
-    <p>This is the line that separates Wheat.game from a farm sim. The cost of holding land is real. The cost of giving up on land is also real. You think harder about which plot you want before you stake into it. You think harder about whether to defend a plot you already own.</p>
+    <p>This is the line that separates Croptopia from a farm sim. The cost of holding land is real. The cost of giving up on land is also real. You think harder about which plot you want before you stake into it. You think harder about whether to defend a plot you already own.</p>
 
     <blockquote>Land you don't believe in, you don't claim. Land you do, you defend.</blockquote>
 
     <h3>What you actually own</h3>
 
-    <p>Holding a Wheat.game plot gets you four things, all on-chain, all tied to the same account:</p>
+    <p>Holding a Croptopia plot gets you four things, all on-chain, all tied to the same account:</p>
 
     <ol>
       <li><strong>Yield rights.</strong> The plot accrues crops, animal products, and tree harvests on a tier-weighted schedule. Yield credits your wallet automatically when you harvest.</li>
@@ -227,26 +227,26 @@ pub enum PlotTier {
 
     <p>Most "play to earn" games confuse activity with commitment. They reward logging in. They reward grinding. They reward being early. None of that filters for whether you actually believe in the world you're farming.</p>
 
-    <p>A stake does. A stake says: I am willing to lock real value into this position, and I accept that walking away costs me. That signal is the floor under everything else in Wheat.game — the markets, the tribes, the leaderboards, the raids. It's why every system on top of plots feels weighted, instead of frictionless.</p>
+    <p>A stake does. A stake says: I am willing to lock real value into this position, and I accept that walking away costs me. That signal is the floor under everything else in Croptopia — the markets, the tribes, the leaderboards, the raids. It's why every system on top of plots feels weighted, instead of frictionless.</p>
 
-    <p>Wheat.game is not a free-to-play game with optional NFTs. It's a protocol where land is the primitive, and farming it is what you do with the land you've bought.</p>
+    <p>Croptopia is not a free-to-play game with optional NFTs. It's a protocol where land is the primitive, and farming it is what you do with the land you've bought.</p>
 
-    <p>The world has 100 plots. There are 5 diamonds. Find yours at <a href="https://thewheat.world">thewheat.world</a> — and follow <a href="https://x.com/TheWheatWorld">@TheWheatWorld</a> for everything else.</p>
+    <p>The world has 100 plots. There are 5 diamonds. Find yours at <a href="https://thewheat.world">thewheat.world</a> — and follow <a href="https://x.com/playCroptopia">@playCroptopia</a> for everything else.</p>
   </div>
 </article>
 
 <!-- ARTICLE 2 -->
 <article id="article-2">
   <div class="article-header">
-    <h2>Two Markets Inside One Game: The Wheat.game Exchange</h2>
+    <h2>Two Markets Inside One Game: The Croptopia Exchange</h2>
     <button class="copy" data-target="article-2-content">Copy</button>
   </div>
   <div id="article-2-content">
-    <p class="meta">Wheat.game · 9 min read</p>
+    <p class="meta">Croptopia · 9 min read</p>
 
-    <p><strong>Wheat.game</strong> runs two markets. One trades the land itself. The other trades what comes off the land. Both are on Solana, both are atomic, and neither has a market maker — players make the market, and the protocol settles it.</p>
+    <p><strong>Croptopia</strong> runs two markets. One trades the land itself. The other trades what comes off the land. Both are on Solana, both are atomic, and neither has a market maker — players make the market, and the protocol settles it.</p>
 
-    <p>Most games either give you a fixed-price NPC vendor or a chat channel where people post WTS messages and pray. Wheat.game gives you an order book for crops and a peer-to-peer auction layer for plots. Different machinery for different problems.</p>
+    <p>Most games either give you a fixed-price NPC vendor or a chat channel where people post WTS messages and pray. Croptopia gives you an order book for crops and a peer-to-peer auction layer for plots. Different machinery for different problems.</p>
 
     <h3>Plots are unique. Crops are fungible.</h3>
 
@@ -256,7 +256,7 @@ pub enum PlotTier {
 
     <h3>The plot exchange</h3>
 
-    <p>Every plot offer is a separate on-chain account, seeded by the plot it's attached to. Wheat.game enforces one open offer per plot at a time — listing a plot a second time cancels the first.</p>
+    <p>Every plot offer is a separate on-chain account, seeded by the plot it's attached to. Croptopia enforces one open offer per plot at a time — listing a plot a second time cancels the first.</p>
 
     <pre><code>#[account]
 pub struct PlotOffer {
@@ -278,7 +278,7 @@ pub enum OfferStatus { Open, Accepted, Cancelled }</code></pre>
 
     <p>The accept instruction is where most marketplaces would get this wrong. Between the moment an offer is listed and the moment a buyer accepts, the world keeps moving. The seller might list elsewhere. The plot might change hands through a raid. The seller might cancel.</p>
 
-    <p>Wheat.game's accept is guarded against all three with a single optimistic concurrency check.</p>
+    <p>Croptopia's accept is guarded against all three with a single optimistic concurrency check.</p>
 
     <pre><code>pub fn accept_plot_offer(ctx: Context&lt;AcceptPlotOffer&gt;) -&gt; Result&lt;()&gt; {
     let offer = &amp;mut ctx.accounts.offer;
@@ -406,7 +406,7 @@ pub enum OrderStatus  { Open, Filled, Cancelled }</code></pre>
 
     <blockquote>We didn't build a marketplace. We built a primitive. The players make the market.</blockquote>
 
-    <p>Trade plots and crops at <a href="https://thewheat.world">thewheat.world</a>. New listings, new orders, and weekly volume updates: <a href="https://x.com/TheWheatWorld">@TheWheatWorld</a>.</p>
+    <p>Trade plots and crops at <a href="https://thewheat.world">thewheat.world</a>. New listings, new orders, and weekly volume updates: <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
   </div>
 </article>
 
@@ -417,17 +417,17 @@ pub enum OrderStatus  { Open, Filled, Cancelled }</code></pre>
     <button class="copy" data-target="article-3-content">Copy</button>
   </div>
   <div id="article-3-content">
-    <p class="meta">Wheat.game · 9 min read</p>
+    <p class="meta">Croptopia · 9 min read</p>
 
-    <p>The interesting question in <strong>Wheat.game</strong> isn't whether your wheat is ready. It's how much wheat you actually receive when you harvest it.</p>
+    <p>The interesting question in <strong>Croptopia</strong> isn't whether your wheat is ready. It's how much wheat you actually receive when you harvest it.</p>
 
     <p>The base number printed on a crop is a starting point. Every crop, every animal product, every tree harvest gets passed through a stack of multipliers before it lands in your inventory. Plot upgrades. Tribe membership. Alliance pacts. Time-of-day bonuses. They compose. They compound. And the gap between a casual harvester and a maxed-out one is multiplicative, not additive.</p>
 
     <h3>The base yield</h3>
 
-    <p>Every plant in Wheat.game has a base yield and a sell value. Wheat returns 1 wheat per cycle and trades for around 2 USDC. Magic herbs return less often but trade for fifty times as much. The base is the number you'd get if you owned a level-1 plot, joined no group, harvested at midnight on a slow day, and walked away.</p>
+    <p>Every plant in Croptopia has a base yield and a sell value. Wheat returns 1 wheat per cycle and trades for around 2 USDC. Magic herbs return less often but trade for fifty times as much. The base is the number you'd get if you owned a level-1 plot, joined no group, harvested at midnight on a slow day, and walked away.</p>
 
-    <p>Almost nobody plays Wheat.game that way.</p>
+    <p>Almost nobody plays Croptopia that way.</p>
 
     <h3>Plot upgrades</h3>
 
@@ -444,7 +444,7 @@ pub enum OrderStatus  { Open, Filled, Cancelled }</code></pre>
 
     <h3>Tribes</h3>
 
-    <p>Tribes are the heavy social structure in Wheat.game. Up to ten members. A leader. An invite code. Applications you accept or reject. A kick instruction the leader can sign. A name and a tag the world sees on the leaderboard.</p>
+    <p>Tribes are the heavy social structure in Croptopia. Up to ten members. A leader. An invite code. Applications you accept or reject. A kick instruction the leader can sign. A name and a tag the world sees on the leaderboard.</p>
 
     <pre><code>#[account]
 pub struct Tribe {
@@ -507,7 +507,7 @@ pub struct Alliance {
 
     <h3>The compounding stack</h3>
 
-    <p>Here is what every harvest in Wheat.game actually computes.</p>
+    <p>Here is what every harvest in Croptopia actually computes.</p>
 
     <pre><code>pub fn compute_yield(
     base:           u64,
@@ -546,7 +546,7 @@ pub struct Alliance {
     yield_amt
 }</code></pre>
 
-    <p>Multipliers compose multiplicatively, not additively. That single design choice is what makes Wheat.game reward dedication out of proportion to effort.</p>
+    <p>Multipliers compose multiplicatively, not additively. That single design choice is what makes Croptopia reward dedication out of proportion to effort.</p>
 
     <h3>What four bonuses look like</h3>
 
@@ -568,7 +568,7 @@ let golden   = alliance * 120 / 100;   // 277    (golden hour: +20%)
 
     <blockquote>Anyone can show up. Fewer can build the structure. The protocol pays the difference.</blockquote>
 
-    <p>Find a tribe, sign an alliance, and stake a plot at <a href="https://thewheat.world">thewheat.world</a>. Tribe formations and Golden Hour reminders post on <a href="https://x.com/TheWheatWorld">@TheWheatWorld</a>.</p>
+    <p>Find a tribe, sign an alliance, and stake a plot at <a href="https://thewheat.world">thewheat.world</a>. Tribe formations and Golden Hour reminders post on <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
   </div>
 </article>
 
