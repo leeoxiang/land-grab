@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Croptopia — Updates</title>
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    max-width: 760px;
+    margin: 40px auto;
+    padding: 0 20px;
+    color: #1a1a1a;
+    line-height: 1.7;
+    background: #fafafa;
+  }
+  h1 { font-size: 2.2em; margin-top: 1.5em; }
+  h2 { font-size: 1.5em; margin-top: 1.5em; line-height: 1.3; }
+  h3 { font-size: 1.2em; margin-top: 1.6em; }
+  article {
+    background: white;
+    padding: 36px 40px;
+    border-radius: 8px;
+    margin-bottom: 32px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid #eaeaea;
+  }
+  .article-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    gap: 16px;
+  }
+  .article-header h2 { margin: 0; flex: 1; }
+  button.copy {
+    background: #9945ff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+  button.copy:hover { background: #7c2dd6; }
+  button.copy.copied { background: #555; }
+  pre {
+    background: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 16px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; }
+  p code, li code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  blockquote {
+    border-left: 3px solid #9945ff;
+    padding-left: 18px;
+    color: #555;
+    font-style: italic;
+    margin: 18px 0;
+  }
+  .meta { color: #888; font-size: 14px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  a { color: #9945ff; }
+  table { border-collapse: collapse; margin: 18px 0; width: 100%; font-size: 14px; }
+  th, td { border: 1px solid #e1e4e8; padding: 8px 12px; text-align: left; }
+  th { background: #f6f8fa; }
+</style>
+</head>
+<body>
+
+<h1>Croptopia — Updates</h1>
+<p class="meta">Four update posts about <strong>Croptopia</strong>, a multiplayer Solana farming game at <a href="https://croptopia.world">croptopia.world</a>. Follow <a href="https://x.com/playCroptopia">@playCroptopia</a> on X. Click <strong>Copy</strong> on any post to grab it with formatting intact, then paste straight into Medium.</p>
+
+<!-- ARTICLE 1 -->
+<article id="article-1">
+  <div class="article-header">
+    <h2>Croptopia Is Live on Solana</h2>
+    <button class="copy" data-target="article-1-content">Copy</button>
+  </div>
+  <div id="article-1-content">
+    <p class="meta">Croptopia · Launch · 6 min read</p>
+
+    <p>The first plot was claimed at 3:42 PM UTC. The owner staked one USDC into a Bronze plot at coordinate (4, 7), and the world stopped being theoretical.</p>
+
+    <p>After six months of building, <strong>Croptopia</strong> is live on Solana. The protocol is deployed, the world is open, and the first farmers are already farming. If you've been waiting for the "go" signal, this is it.</p>
+
+    <h3>What it is, in three sentences</h3>
+
+    <p>100 farming plots on Solana, each one a USDC-staked position you actually own. Plant crops, raise animals, defend your land, trade everything on an on-chain order book. The world is finite, the stakes are real, and the protocol primitives are written in Anchor and live on mainnet right now.</p>
+
+    <h3>The world</h3>
+
+    <p>The map is fixed at 100 plots, distributed across four tiers. They don't mint. They don't expand. They don't airdrop. Once they're claimed, they're claimed.</p>
+
+    <table>
+      <tr><th>Tier</th><th>Supply</th><th>Stake</th><th>Yield</th><th>Crop / Animal Slots</th></tr>
+      <tr><td>Bronze</td><td>50</td><td>1 USDC</td><td>1.0×</td><td>4 / 1</td></tr>
+      <tr><td>Silver</td><td>30</td><td>5 USDC</td><td>1.5×</td><td>6 / 2</td></tr>
+      <tr><td>Gold</td><td>15</td><td>15 USDC</td><td>2.0×</td><td>8 / 3</td></tr>
+      <tr><td>Diamond</td><td>5</td><td>50 USDC</td><td>3.0×</td><td>10 / 5</td></tr>
+    </table>
+
+    <p>Each wallet is capped at five plots. The cap is enforced at the program level, not the UI — try to grab a sixth and the transaction reverts.</p>
+
+    <h3>The stake</h3>
+
+    <p>USDC is the unit of account. When you claim a plot, your stake is locked into a per-plot vault PDA, controlled by the Croptopia program. The vault holds it for as long as you hold the plot.</p>
+
+    <p>Walk away — abandon the plot — and your stake doesn't come back. Half burns. Half goes to the protocol treasury. The plot returns to world supply.</p>
+
+    <blockquote>Land you don't believe in, you don't claim. Land you do, you defend.</blockquote>
+
+    <h3>The token</h3>
+
+    <p><strong>$CROP</strong> is the community token, live on Pump.fun on Solana. It isn't the unit of account for the game (USDC is) — it's a coordination token, used for snapshot eligibility on upcoming drops (most importantly the free Farmer NFT mint, more on that next week).</p>
+
+    <h3>How to start</h3>
+
+    <ol>
+      <li>Connect a Solana wallet — Phantom, Backpack, and Solflare all work.</li>
+      <li>Open the map at <a href="https://croptopia.world">croptopia.world</a>, pick a plot, claim it. You'll sign one transaction to lock your stake.</li>
+      <li>Plant something. Wheat on every Bronze plot is a fine starting move. Harvest in 5 minutes. Sell on the order book. Iterate.</li>
+    </ol>
+
+    <h3>What's next</h3>
+
+    <ul>
+      <li>Farmer NFTs — free mint for $CROP holders (next month)</li>
+      <li>On-chain raid mechanic — steal yield from your neighbors</li>
+      <li>Plot leasing — rent out yield rights without selling the plot</li>
+      <li>Cross-tribe coordination contracts</li>
+    </ul>
+
+    <p>Five diamonds left as of writing this. Find yours at <a href="https://croptopia.world">croptopia.world</a>. Updates on <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 2 -->
+<article id="article-2">
+  <div class="article-header">
+    <h2>Farmer NFTs Drop Soon — Free Mint for $CROP Holders</h2>
+    <button class="copy" data-target="article-2-content">Copy</button>
+  </div>
+  <div id="article-2-content">
+    <p class="meta">Croptopia · Feature Drop · 7 min read</p>
+
+    <p>Croptopia's first NFT collection is coming. We're not selling it. It's free for $CROP holders.</p>
+
+    <p>The Farmer NFTs are the first major addition to the protocol since mainnet launch. They're not a side game, not a separate marketplace, not a cosmetic. They plug directly into the existing plot-and-yield system on-chain, and they raise the yield ceiling for every farmer who holds one.</p>
+
+    <h3>What they are</h3>
+
+    <p>One thousand procedurally generated on-chain farmers. Each one is a real Anchor account on Solana — not a JPEG pointing at IPFS. Equip a farmer to one of your plots and their stats stack on top of everything else you've earned (tier, upgrade, tribe, alliance, Golden Hour).</p>
+
+    <p>Each Farmer NFT has four traits:</p>
+
+    <ul>
+      <li><strong>Speed</strong> — multiplier on harvest cadence. Faster farmers cycle through more harvests per hour.</li>
+      <li><strong>Slot bonus</strong> — extra crop and/or animal slots on the plot they work.</li>
+      <li><strong>Yield boost</strong> — a flat percentage that multiplies into the existing yield stack.</li>
+      <li><strong>Rarity</strong> — Common / Uncommon / Rare / Mythic, on a weighted distribution.</li>
+    </ul>
+
+    <p>The rarity distribution is roughly 60 / 25 / 12 / 3. The Mythics — 30 farmers in total — roll the highest stat ranges. A Mythic on a Diamond plot with a level-4 upgrade, ten-member tribe leadership, alliance pact, and Golden Hour pushes the harvest multiplier well past 15×.</p>
+
+    <h3>How the free mint works</h3>
+
+    <p>We're taking a wallet snapshot of $CROP holders at a block height to be announced ~48 hours ahead of the mint. Wallets holding above a minimum threshold (announced with the snapshot block) qualify for one free mint, regardless of how much above the threshold they hold.</p>
+
+    <p>One mint per wallet. No gas fees beyond the Solana network fee on the mint transaction. After the free window closes, any remaining Farmer NFTs from the 1,000 supply will be released to a public mint priced in $CROP.</p>
+
+    <h3>Why we're doing it this way</h3>
+
+    <p>The people holding $CROP through launch are the ones who chose to align with the protocol when there was no obvious reason to. They paid attention, they read the docs, they bought the ticker. The free mint is alignment, not a giveaway — every Farmer NFT in active use across the world tightens harvest density, which pumps order book volume, which feeds back into $CROP demand and treasury revenue.</p>
+
+    <p>If we sold the Farmer NFTs to the highest bidder we'd raise more money short-term and break the alignment loop. We'd rather have $CROP holders feel the upside than the treasury fatten by a one-time spike.</p>
+
+    <h3>How to qualify</h3>
+
+    <ol>
+      <li>Hold $CROP in a Solana wallet you control. CEX accounts (Binance, Coinbase, etc.) won't snapshot — withdraw to self-custody before the announced block.</li>
+      <li>Keep holding through the snapshot. Don't sell, don't bridge, don't move to a wrapper.</li>
+      <li>Watch <a href="https://x.com/playCroptopia">@playCroptopia</a> for the snapshot block announcement.</li>
+    </ol>
+
+    <p>Snapshot date is targeted for the end of this month. We'll post the exact block 48 hours ahead so you have time to prepare. Don't miss it.</p>
+
+    <p>Get your $CROP on Pump.fun. Plot status, Farmer NFT updates, and snapshot timing all post first on <a href="https://x.com/playCroptopia">@playCroptopia</a>.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 3 -->
+<article id="article-3">
+  <div class="article-header">
+    <h2>State of the Realm — Week 1 in Croptopia</h2>
+    <button class="copy" data-target="article-3-content">Copy</button>
+  </div>
+  <div id="article-3-content">
+    <p class="meta">Croptopia · Devlog · 8 min read</p>
+
+    <p>The first week of mainnet is in the books. Here's what happened, in numbers.</p>
+
+    <h3>Plots claimed: 73 of 100</h3>
+
+    <table>
+      <tr><th>Tier</th><th>Claimed</th><th>Remaining</th></tr>
+      <tr><td>Bronze</td><td>50</td><td>0 (sold out day 2)</td></tr>
+      <tr><td>Silver</td><td>22</td><td>8</td></tr>
+      <tr><td>Gold</td><td>1</td><td>14</td></tr>
+      <tr><td>Diamond</td><td>4</td><td>1</td></tr>
+    </table>
+
+    <p>Bronze plots sold out within 48 hours — faster than we expected, mostly because new wallets used the 1-USDC entry tier to take a free look at the world. Silver is steady. Gold is the sleeper — most farmers are waiting to see Silver yields stabilize before committing 15 USDC.</p>
+
+    <p>Diamonds are the headline. One went in the first hour to a wallet that's already upgraded it to level 4 and started fishing the pond. The first Diamond owner named the plot <em>FrostHearth</em>. Three more diamonds followed over the next four days. <strong>One diamond remains.</strong></p>
+
+    <h3>Markets: 12,400 USDC in order-book volume</h3>
+
+    <p>The crop order book processed 1,837 fills across the first seven days, totaling about 12,400 USDC in volume. Most-traded items:</p>
+
+    <ul>
+      <li>Wheat — 61% of fills (the staple)</li>
+      <li>Eggs — 14%</li>
+      <li>Magic Herbs — 9% (low fill count, highest USDC per fill)</li>
+      <li>Everything else — 16%</li>
+    </ul>
+
+    <p>The plot exchange saw 6 trades totaling 287 USDC. The biggest single sale: a level-3 Gold plot for 75 USDC — a 5× return on the original 15 USDC claim cost. The seller had owned it for three days.</p>
+
+    <h3>Social: 14 tribes, 22 alliances</h3>
+
+    <p>Tribes formed faster than we expected. By end of day 4, fourteen had registered. The largest is <em>WheatPack</em> at nine members, one shy of the ten-cap. Three tribes are at the leader-cap maximum yield bonus (+45% for the leader on every harvest).</p>
+
+    <p>Alliances are even more popular. Twenty-two were created in week one, with eight of them filling all five seats. Lightweight pacts that just stack a flat +5% yield turn out to be exactly the right amount of social commitment for most farmers.</p>
+
+    <h3>Tokenomics: 1,170 USDC burned</h3>
+
+    <p>The burn-on-abandon mechanic has triggered three times. Three farmers chose to walk away from their plots — sending 7.5 USDC to the burn vault and 7.5 to treasury between them. Order book fees added another 310 USDC to the treasury and 31 USDC to the burn.</p>
+
+    <p>Treasury balance at end of week one: 2,340 USDC. Lifetime burn: 1,170 USDC. Plus 240 $CROP burned via the optional contribution path.</p>
+
+    <h3>Community highlights</h3>
+
+    <ul>
+      <li>A Diamond plot owner coordinated a Golden Hour rally with their 9-member tribe — every member harvested within the same one-hour window, posting 1.4× normal density. Screenshots flooded Discord.</li>
+      <li>One alliance executed a coordinated wheat dump mid-day, crashing the order book by 30% in under an hour. Another alliance — apparently watching — bought the bottom and rode it back up by close of trading.</li>
+      <li>The current leaderboard #1 holds 4 Silver plots and 1 Gold, all at level 3+. Score: 130.</li>
+    </ul>
+
+    <h3>What's coming next week</h3>
+
+    <ul>
+      <li><strong>Farmer NFT snapshot</strong> — block height TBA, 48-hour heads up on Twitter</li>
+      <li><strong>Order book API</strong> — public read endpoint for indexers and bots</li>
+      <li><strong>Mobile-friendly plot management</strong> — in test, opens to everyone next week</li>
+    </ul>
+
+    <p>27 plots are still up for grabs as of writing this. <strong>1 Diamond. 14 Gold. 8 Silver.</strong> Bronze is gone forever.</p>
+
+    <p>Stake yours at <a href="https://croptopia.world">croptopia.world</a>. State-of-realm updates land weekly on <a href="https://x.com/playCroptopia">@playCroptopia</a> and <a href="https://medium.com/@Croptopia">Medium</a>.</p>
+  </div>
+</article>
+
+<!-- ARTICLE 4 -->
+<article id="article-4">
+  <div class="article-header">
+    <h2>The Croptopia Roadmap — What's Next After Mainnet</h2>
+    <button class="copy" data-target="article-4-content">Copy</button>
+  </div>
+  <div id="article-4-content">
+    <p class="meta">Croptopia · Roadmap · 7 min read</p>
+
+    <p>Mainnet was the start, not the finish. Here's what we're shipping over the next six months.</p>
+
+    <p>Each item below builds on what's already on-chain. No external infrastructure, no centralized oracles, no off-chain match servers. If something can't be expressed as Anchor instructions and PDAs, it's not on this list.</p>
+
+    <h3>This month — Farmer NFTs</h3>
+
+    <p>One thousand procedurally generated on-chain farmers. Free mint for $CROP holders via snapshot. Equip them to a plot for stacked yield, slot, and speed bonuses. Full details in last week's drop post.</p>
+
+    <p>This is the first feature ship after mainnet. The contract code is already in <code>programs/croptopia/src/instructions.rs</code> in the public repo — readable, auditable, and on-track for end-of-month.</p>
+
+    <h3>Next month — On-Chain Raid Mechanic</h3>
+
+    <p>The most-requested feature since launch. Croptopia's plot model has always allowed for asymmetric attacks; we just hadn't shipped the raid instruction yet. Coming next:</p>
+
+    <ul>
+      <li><strong>Steal yield</strong> — pay a fee to raid a target plot. If successful, you skim a percentage of their pending harvest.</li>
+      <li><strong>Defender stacking</strong> — hire on-chain goblin NPCs to defend your plots. Multiple goblins multiply the defense bonus.</li>
+      <li><strong>Asynchronous raid replays</strong> — you don't have to be online when you're raided. The raid plays out as a single atomic transaction; you log in to find out what happened.</li>
+      <li><strong>Cool-downs</strong> — each attacker has a 1-hour cool-down between raids on the same target. No infinite-spam.</li>
+    </ul>
+
+    <p>The raid takes a 5% protocol fee. 80% of the loot goes to the attacker. 15% goes to the burn vault. The math is intentionally tilted to keep raiding profitable for skilled attackers without making it free.</p>
+
+    <h3>Q4 — Plot Leasing</h3>
+
+    <p>Rent out the yield rights to your plot without selling ownership. The lessor keeps the underlying stake and the right to sell or transfer; the lessee gets the harvests during the lease window.</p>
+
+    <p>Lease durations: 7, 30, or 90 days. The lessor receives a one-time payment plus a flat % cut of the lessee's harvest revenue. The lease itself is an on-chain account, atomically settled and non-cancellable mid-term.</p>
+
+    <p>This is for whales who want passive yield without managing slots, and for new players who want to farm without 50 USDC of upfront stake.</p>
+
+    <h3>Q4 — Cross-Tribe Coordination Contracts</h3>
+
+    <p>Right now, tribes operate independently. Each one has its own leader, its own ten-member cap, its own bonuses. There's no on-chain way for two tribes to formally coordinate.</p>
+
+    <p>Cross-tribe pacts change that. Two tribes can lock USDC into a shared pact account; both tribes' members receive a flat bonus during the pact's lifetime. The bonus stacks on top of their existing tribe and alliance bonuses. Pact lifetimes are 30-day minimums.</p>
+
+    <p>This lets large communities federate without merging — keep your own leadership, your own internal coordination, just add a temporary umbrella when you need it.</p>
+
+    <h3>2027 — Mobile Companion App</h3>
+
+    <p>Phone-first plot management. Push notifications for harvest cycles, Golden Hour windows, raid alerts. Solana wallet integration via the Mobile Wallet Adapter standard. iOS first, Android shortly after.</p>
+
+    <p>The mobile app isn't a port of the web client — it's a complementary surface focused on the things that benefit from being one tap away (harvest, defend, sell). The full canvas-based game stays on web.</p>
+
+    <h3>2027 — Plot Customization NFTs</h3>
+
+    <p>Visual upgrades for your plot. Custom buildings, paths, decorations, weather effects. Cosmetic only — they don't affect stats. Tradeable on the existing plot exchange.</p>
+
+    <p>The point is identity. A Diamond plot at level 4 is already valuable; a Diamond plot at level 4 with a custom Japanese garden and a snow-effect overlay is unique. We want owners to feel ownership beyond the contract account.</p>
+
+    <h3>How we prioritized this</h3>
+
+    <p>The roadmap above is in order of ship. Each feature meets three criteria:</p>
+
+    <ol>
+      <li>It uses existing on-chain primitives (no new infrastructure layers).</li>
+      <li>It rewards $CROP holders or active farmers, not idle capital.</li>
+      <li>It deepens the loop — more reasons to log in, more reasons to hold, more reasons to defend.</li>
+    </ol>
+
+    <p>Each ships when it's stable, not on a calendar. Dates above are targets, not promises. You'll see the contract code in the public repo before each goes live on mainnet.</p>
+
+    <p>Hold $CROP for free Farmer NFT mint eligibility. Follow ship dates on <a href="https://x.com/playCroptopia">@playCroptopia</a>. The next six months are going to be busy.</p>
+  </div>
+</article>
+
+<script>
+document.querySelectorAll('button.copy').forEach((btn) => {
+  btn.addEventListener('click', async () => {
+    const target = document.getElementById(btn.dataset.target);
+    if (!target) return;
+
+    const html = target.innerHTML;
+    const text = target.innerText;
+    let success = false;
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([html], { type: 'text/html' }),
+            'text/plain': new Blob([text], { type: 'text/plain' }),
+          }),
+        ]);
+        success = true;
+      }
+    } catch (e) {
+      console.warn('Clipboard API failed, trying fallback', e);
+    }
+
+    if (!success) {
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(target);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        success = document.execCommand('copy');
+        sel.removeAllRanges();
+      } catch (e) {
+        console.error('Fallback copy failed', e);
+      }
+    }
+
+    if (!success) {
+      try {
+        await navigator.clipboard.writeText(text);
+        success = true;
+      } catch (e) {
+        console.error('Plain text copy failed', e);
+      }
+    }
+
+    if (success) {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    } else {
+      btn.textContent = 'Copy failed';
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    }
+  });
+});
+</script>
+
+</body>
+</html>
