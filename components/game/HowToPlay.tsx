@@ -255,7 +255,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
           flexShrink:   0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img src="/logo.png" alt="Wheat.game" width={24} height={24} style={{ imageRendering: 'pixelated' }} />
+            <img src="/logo.png" alt="Croptopia" width={24} height={24} style={{ imageRendering: 'pixelated' }} />
             <div>
               <div style={{
                 fontFamily:   '"Press Start 2P", monospace',
@@ -264,7 +264,7 @@ export default function HowToPlay({ onClose }: { onClose: () => void }) {
                 letterSpacing: 1,
                 lineHeight:   1,
               }}>
-                WHEAT.GAME
+                CROPTOPIA
               </div>
               <div style={{
                 fontFamily: '"Press Start 2P", monospace',

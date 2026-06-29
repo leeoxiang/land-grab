@@ -69,10 +69,10 @@ export default function Home() {
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <img src="/logo.png" alt="Wheat.game" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
+          <img src="/logo.png" alt="Croptopia" width={22} height={22} style={{ imageRendering: 'pixelated' }} />
           <div>
             <h1 style={{ color: '#e8c090', fontSize: 13, letterSpacing: 2, fontFamily: '"Press Start 2P", monospace', lineHeight: 1 }}>
-              WHEAT.GAME
+              CROPTOPIA
             </h1>
             <p className="hidden sm:block" style={{ color: '#5c3317', fontSize: 7, fontFamily: '"Press Start 2P", monospace', marginTop: 4, letterSpacing: 1 }}>
               SOLANA FARMING
@@ -124,10 +124,10 @@ export default function Home() {
             rel="noopener noreferrer"
             className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
             style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', boxShadow: 'inset 1px 1px 0 #f0b820, inset -1px -1px 0 #5a4000, 3px 3px 0 #3a2800', fontSize: 10, textDecoration: 'none' }}
-            title="Buy $WHEAT on Pump.fun"
+            title="Buy $CROP on Pump.fun"
           >
             <PixelIcon icon="coin" size={12} />
-            Buy $WHEAT
+            Buy $CROP
           </a>
           <button
             onClick={() => setShowHowTo(true)}
@@ -182,10 +182,10 @@ export default function Home() {
               rel="noopener noreferrer"
               className="pixel-btn flex items-center gap-1 px-2 py-1.5"
               style={{ background: '#c89800', borderColor: '#7a5a00', color: '#fff6d0', fontSize: 9, textDecoration: 'none' }}
-              title="Buy $WHEAT on Pump.fun"
+              title="Buy $CROP on Pump.fun"
             >
               <PixelIcon icon="coin" size={10} />
-              $WHEAT
+              $CROP
             </a>
             <button
               onClick={() => setShowHowTo(true)}

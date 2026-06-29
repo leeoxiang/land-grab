@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- Wheat.game — Schema Additions (run in Supabase SQL editor)
+-- Croptopia — Schema Additions (run in Supabase SQL editor)
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Plot activity feed
