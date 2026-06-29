@@ -21,7 +21,7 @@ const SOCIAL = [
   },
   {
     label: 'Pump.fun',
-    href:  'https://pump.fun',
+    href:  'https://pump.fun/coin/AGbgyS4vCywXzpdRUNhXceA2dqa2Te8YXM9VN1teCrop',
     icon:  'https://cdn.prod.website-files.com/69082c5061a39922df8ed3b6/69093cbeb0e0ed83a682a1c1_68d5c1872568958fd78018bb_twitter%20(1).png',
   },
   {
@@ -119,7 +119,7 @@ export default function Home() {
             Market
           </button>
           <a
-            href="https://pump.fun"
+            href="https://pump.fun/coin/AGbgyS4vCywXzpdRUNhXceA2dqa2Te8YXM9VN1teCrop"
             target="_blank"
             rel="noopener noreferrer"
             className="pixel-btn flex items-center gap-1.5 px-3 py-1.5"
@@ -177,7 +177,7 @@ export default function Home() {
               <PixelIcon icon="coin" size={12} />
             </button>
             <a
-              href="https://pump.fun"
+              href="https://pump.fun/coin/AGbgyS4vCywXzpdRUNhXceA2dqa2Te8YXM9VN1teCrop"
               target="_blank"
               rel="noopener noreferrer"
               className="pixel-btn flex items-center gap-1 px-2 py-1.5"
